@@ -9,40 +9,44 @@ workflow auto {
 
 // construct list of methods and control methods
 methods = [
-  embed_cell_types,
-  embed_cell_types_jittered,
-  no_integration,
-  no_integration_batch,
-  shuffle_integration,
-  shuffle_integration_by_batch,
-  shuffle_integration_by_cell_type,
-  batchelor_fastmnn,
-  batchelor_mnn_correct,
-  bbknn,
-  combat,
-  geneformer,
-  harmony,
-  harmonypy,
-  liger,
-  mnnpy,
-  pyliger,
-  scalex,
-  scanorama,
-  scanvi,
-  scgpt_finetuned.run(
-    args: [model: file("s3://openproblems-work/cache/scGPT_human.zip")]
-  ),
-  scgpt_zeroshot.run(
-    args: [model: file("s3://openproblems-work/cache/scGPT_human.zip")]
-  ),
-  scimilarity.run(
-    args: [model: file("s3://openproblems-work/cache/scimilarity-model_v1.1.tar.gz")]
-  ),
-  scprint,
-  scvi,
-  uce.run(
-    args: [model: file("s3://openproblems-work/cache/uce-model-v5.zip")]
-  )
+//  no_integration,
+//  pca,
+//  sca,
+//  scanorama,
+//  scanorama_correct,
+//  scanorama_integrate,
+//  sca_scale_pcr,
+//  sca_sel_pcr,
+//  harmonypy_sel_pcr,
+//  harmonypy_scale_pcr,
+//  harmonypy_vd,
+//  scanorama_sel_pcr,
+//  scanorama_scale_pcr,
+//  sca_scale_ilisi,
+//  sca_sel_ilisi,
+//  harmonypy_sel_ilisi,
+//  harmonypy_scale_ilisi,
+//  scanorama_sel_ilisi,
+//  scanorama_scale_ilisi,
+//  scvi,
+//  seurat_cca,
+//  liger_vd,
+//  nmf,
+//  pca_scale_pcr,
+//  pca_sel_pcr
+//  pca_scale_ilisi,
+//  pca_sel_ilisi
+//  alpine
+//  scvi_scale_pcr,
+//  scvi_sel_pcr,
+//  seurat_scale_pcr,
+//  seurat_sel_pcr
+//  liger_scale_pcr,
+//  liger_sel_pcr,
+//  nmf_scale_pcr,
+//  nmf_sel_pcr
+//  nmf_scale_ilisi
+    liger_sel_ilisi
 ]
 
 // construct list of metrics

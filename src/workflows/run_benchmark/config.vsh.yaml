@@ -80,33 +80,45 @@ dependencies:
   - name: utils/extract_uns_metadata
     repository: openproblems
   # control methods
-  - name: control_methods/embed_cell_types
-  - name: control_methods/embed_cell_types_jittered
   - name: control_methods/no_integration
-  - name: control_methods/no_integration_batch
-  - name: control_methods/shuffle_integration
-  - name: control_methods/shuffle_integration_by_batch
-  - name: control_methods/shuffle_integration_by_cell_type
   # methods
-  - name: methods/batchelor_fastmnn
-  - name: methods/batchelor_mnn_correct
-  - name: methods/bbknn
-  - name: methods/combat
-  - name: methods/geneformer
-  - name: methods/harmony
-  - name: methods/harmonypy
-  - name: methods/liger
-  - name: methods/mnnpy
-  - name: methods/pyliger
-  - name: methods/scalex
+  - name: methods/pca 
+  - name: methods/sca
   - name: methods/scanorama
-  - name: methods/scanvi
-  - name: methods/scgpt_finetuned
-  - name: methods/scgpt_zeroshot
-  - name: methods/scimilarity
-  - name: methods/scprint
+  - name: methods/scanorama_correct
+  - name: methods/scanorama_integrate
+  - name: methods/sca_scale_ilisi
+  - name: methods/sca_scale_pcr
+  - name: methods/sca_sel_ilisi
+  - name: methods/sca_sel_pcr
+  - name: methods/harmonypy_sel_ilisi
+  - name: methods/harmonypy_sel_pcr
+  - name: methods/harmonypy_scale_ilisi
+  - name: methods/harmonypy_scale_pcr
+  - name: methods/harmonypy_vd
+  - name: methods/scanorama_sel_ilisi
+  - name: methods/scanorama_sel_pcr
+  - name: methods/scanorama_scale_ilisi
+  - name: methods/scanorama_scale_pcr
+  - name: methods/pca_scale_ilisi
+  - name: methods/pca_scale_pcr
+  - name: methods/pca_sel_ilisi
+  - name: methods/pca_sel_pcr
   - name: methods/scvi
-  - name: methods/uce
+  - name: methods/scvi_sel_pcr
+  - name: methods/scvi_scale_pcr  
+  - name: methods/seurat_cca
+  - name: methods/seurat_sel_pcr
+  - name: methods/seurat_scale_pcr
+  - name: methods/liger_vd
+  - name: methods/liger_sel_pcr
+  - name: methods/liger_scale_pcr  
+  - name: methods/nmf
+  - name: methods/nmf_sel_pcr
+  - name: methods/nmf_scale_pcr
+  - name: methods/nmf_scale_ilisi
+  - name: methods/liger_sel_ilisi
+  - name: methods/alpine
   # metrics
   - name: metrics/asw_batch
   - name: metrics/asw_label
