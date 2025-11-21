@@ -1,5 +1,7 @@
 import sys
 import pandas as pd
+#Stacks scib-metrics benchmarking DFs
+#Args: output_df.pkl input_df.1.pkl input_df.2.pkl input_df.3.pkl...
 
 dfs = []
 for name in sys.argv[2:]:

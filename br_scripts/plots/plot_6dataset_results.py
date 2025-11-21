@@ -9,8 +9,7 @@ import matplotlib.colors as mc
 import matplotlib.ticker as plticker
 
 
-# Metric lists (YOU MUST FILL THESE IN BASED ON YOUR DATA)
-# Example: batch metrics (first 8) and biocons metrics (last 7)
+# Metric lists
 
 biocons_metrics = ["isolated_label_asw", "clisi", 
                  "nmi", "ari", "asw_label",
@@ -19,15 +18,12 @@ batch_metrics = ["asw_batch", "ilisi", "kbet",
                    "graph_connectivity", "pcr"]
 #                    "ari_batch", "nmi_batch"]
 
-# Save the placeholder data to a temporary CSV for simulation
-# df_raw.to_csv('placeholder_data.csv', index=False)
 df = pd.read_csv('results_table_1116.csv')
 
 # Define the required order for the jitter plots
 all_metrics = batch_metrics + biocons_metrics
-#alpine will get gray
-baselines = ['harmonypy', 'pca', 'sca', 'scanorama', 'seurat', 'alpine', 'scvi', 'liger', 'nmf']
-
+#skip will get gray
+baselines = ['harmonypy', 'pca', 'sca', 'scanorama', 'seurat', 'skip', 'scvi', 'liger', 'nmf']
 
 
 # --- 2. Data Preprocessing and Aggregation ---
@@ -71,7 +67,7 @@ df_agg = df_long.groupby(['Dataset', 'Method', 'Baseline', 'Type', 'B_modifier',
     })
 ).reset_index()
 
-# Global Aggregate Score aggregation (for Dot Plot panel) - Includes zero scores for alpine failure
+# Global Aggregate Score aggregation (for Dot Plot panel)
 df_agg_global = df_agg.groupby(
     ['Method', 'Baseline', 'Type', 'B_modifier', 'C_modifier']
 )[['batch_score', 'biocons_score']].mean().reset_index()
@@ -89,7 +85,7 @@ colors = plt.get_cmap('Set1', len(baselines))
 
 color_map = {name: colors(i) for i, name in enumerate(baselines)}
 print(color_map)
-baselines.remove("alpine")
+baselines.remove("skip")
 
 # Define markers based on B_modifier and C_modifier combination
 def get_marker(B, C, type_):
@@ -159,11 +155,7 @@ def darken_color(color, amount=0.75):
 # --- 4. Exclusion Rule and Shared Legend Creation ---
 
 def apply_exclusion_rules(df_input):
-    """Excludes the 'alpine' method from the 'mouse_pancreas_atlas' dataset."""
-    # Exclusion rule: Exclude 'alpine' baseline and all its modified versions
-    #df_output = df_input[
-    #    ~((df_input['Dataset'] == 'mouse_pancreas_atlas') & (df_input['Baseline'] == 'alpine'))
-    #].copy()
+    #Exclude filtering for LIGER on GTEx due to insufficient dimensions. 
     df_output = df_input[
         ~((df_input['Dataset'] == 'gtex_v9') & (df_input['Baseline'] == 'liger') & (df_input['B_modifier'] == 'sel'))
     ].copy()
@@ -832,18 +824,18 @@ def create_jitter_plot_per_metric(df_data_long, filter_c, b_filter_list, filenam
 
 # --- 9. Generate All Plots ---
 
-print("Starting plot generation with individual scaling and exclusion rule applied to multi-panel plots...")
+print("Starting plot generation...")
 
-b_modifier_groups = {
+b_modifier_groups = { #BR modes
     'scale': ['scale'],
-    'select': ['sel'],
+    'select': ['sel'], #sel = filtering
     'seldims': ['sel', 'sel2', 'sel3'],}
 c_modifiers = ['pcr', 'ilisi']
 method_subsets = {"seldims": ['harmonypy', 'sca', 'pca', 'scanorama']}
 
 for c_mod in c_modifiers:
     for group_name, b_list in b_modifier_groups.items():
-        """
+
         # 1. Global Aggregate Plots (Dot Plots + Difference Bar Plot) - Two Panel, Filtered by C and B-list - No Exclusion/Global Scale
         create_global_summary_two_panel(
             df_agg_global, 
@@ -853,6 +845,7 @@ for c_mod in c_modifiers:
             b_arrow_list=['scale', 'sel'],
             mod_method_list=method_subsets.get(group_name, None)
         )
+        
         # 2. Aggregate Plots (Dot Plots) - Per Dataset, Filtered by C and B-list - Individual Scaling and Exclusion Applied
         create_dot_plot(
             df_agg, 
@@ -870,7 +863,7 @@ for c_mod in c_modifiers:
             b_filter_list=b_list, 
             filename=f'plot_jitter_global_{c_mod}_{group_name}.svg'
         ) 
-        """
+
         # 4. Jitter Plots (Individual Metrics, Grouped by Metric) - Filtered by C and B-list - Individual Scaling and Exclusion Applied
         create_jitter_plot_per_metric(
             df_long, 

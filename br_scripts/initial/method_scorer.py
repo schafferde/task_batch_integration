@@ -5,7 +5,7 @@ import pandas as pd
 from scib_metrics.benchmark import Benchmarker, BioConservation, BatchCorrection
 import os
 
-#Adapted from scib-metrics to run on a pre-made DF
+#Plotting code is adapted from scib-metrics to run on a pre-made DF
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -113,7 +113,7 @@ def plot_results_table(df, show: bool = False, save_path: str | None = None, bat
 
 def create_parser():
     parser = argparse.ArgumentParser(
-        description='A brief description of your script and what it does.'
+        description='Test BatchRefiner approaches using pre-computed embeddings and scib-metrics dimension scores'
     )
 
     parser.add_argument(
@@ -178,7 +178,7 @@ def create_parser():
     parser.add_argument(
         '--add_baseline',
         action='store_true',
-        help='Optional: Add baseline to existing scores'
+        help='Optional: Add baseline to existing scores. Do not try any non-baseline approaches.'
     )
 
     parser.add_argument(
@@ -222,7 +222,6 @@ if __name__ == '__main__':
     if args.baseline or args.add_baseline:
         new_key = args.method + str(total_dims)
         adata.obsm[new_key] = orig_emb
-        print("RUNNING BASELINE", flush=True)
         print(new_key)
         new_keys.append(new_key)
     if not args.add_baseline:
@@ -231,7 +230,7 @@ if __name__ == '__main__':
         score_df.drop(score_df.tail(1).index,inplace=True) 
 
         if args.biocons:
-            metrics = {"Bio conservation":"BioCons", "Isolated labels":"IsoLabels", "KMeans NMI":"KMeansNMI", "KMeans ARI":"KMeansARI", "Silhouette label":"ShilLabel", "cLISI":"cLISI"}
+            metrics = {"Bio conservation":"BioCons", "Isolated labels":"IsoLabels", "KMeans NMI":"KMeansNMI", "KMeans ARI":"KMeansARI", "Silhouette label":"SilLabel", "cLISI":"cLISI"}
         elif args.batch2:
             metrics = {"iLISI":"iLISI", "PCR comparison":"PCRComp"}
         else:

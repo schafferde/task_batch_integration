@@ -6,18 +6,14 @@ import colorsys
 import matplotlib.colors as mc
 import numpy as np
 
-# Metric lists (YOU MUST FILL THESE IN BASED ON YOUR DATA)
-# Example: batch metrics (first 8) and biocons metrics (last 7)
-
+# Metric lists 
 biocons_metrics = ["isolated_label_asw", "clisi", 
                  "nmi", "ari", "asw_label",
                  "isolated_label_f1", "cell_cycle_conservation"]
 batch_metrics = ["asw_batch", "ilisi", "kbet",
                    "graph_connectivity", "pcr"]
 
-# Save the placeholder data to a temporary CSV for simulation
-# df_raw.to_csv('placeholder_data.csv', index=False)
-df = pd.read_csv('tables/Combined_100_scale_batch_scores_v1.csv')
+df = pd.read_csv('initial_tables/Combined_100_scale_batch_scores_v1.csv')
 df.drop(df.tail(1).index,inplace=True)
 df['Batch correction'] = df['Batch correction'].astype(np.float64)
 df['Bio conservation'] = df['Bio conservation'].astype(np.float64)
@@ -177,9 +173,7 @@ for i, df_panel in enumerate([modified_df_scale, modified_df_select]):
             ax.add_patch(fancy_arrow)
              
 
-
-
-    # Panel settings (AXIS LABELS SWAPPED)
+    # Panel settings
     ax.set_xlabel('Batch Correction Score', fontsize=16) # Increased font size
     ax.set_ylabel('Bio Conservation Score', fontsize=16) # Increased font size
     ax.grid(True, linestyle='--', alpha=0.6)
@@ -250,7 +244,7 @@ for name in list(df_both["Embedding"]):
         approach = "scal"
     if metric == "PCRComp":
         metric = "PCR Comp."
-    elif metric == "ShilBatch" or metric == "SilBatch": #I have a typo in some places
+    elif metric == "SilBatch": 
         metric = "Sil. Batch"
     
     names.append(f"{baseline} {approach}ed w/ {metric}")
@@ -264,8 +258,6 @@ ax.set_ylim(0, 0.4)
 ax.set_xlim(-2*width, len(names)-width)
 ax.tick_params(axis='y', which='major', labelsize=12)
 ax.vlines(x=n_scaled-width*1.5, ymin=0, ymax=0.4, colors='gray', linestyles='--', linewidth=2)
-
-
 
 
 plt.savefig('plot_prelim_bars.svg', format='svg', bbox_inches='tight')

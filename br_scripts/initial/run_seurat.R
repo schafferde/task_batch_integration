@@ -13,17 +13,16 @@ suppressPackageStartupMessages({
 
 packageVersion("Seurat")
 
-## VIASH START
+# Change these
 par <- list(
-  input = 'large_dataset/checkpoint_allgenes_sca5+nmf.h5ad',
-  output = 'large_dataset/checkpoint_allgenes_seurat200.h5ad',
-  dims = 200L,
+  input = 'large_dataset/checkpoint_allgenes_baselines.h5ad',
+  output = 'large_dataset/checkpoint_allgenes_w_seurat100.h5ad',
+  dims = 100L,
   kweight=100L
 )
 meta <- list(
   name = "seurat_cca"
 )
-## VIASH END
 
 cat("Read input\n")
 adata <- anndata::read_h5ad(par$input)
@@ -60,9 +59,6 @@ seurat_obj <- CreateSeuratObject(
 seurat_obj[["RNA"]]$data <- norm_data
 
 cat("Set highly variable genes de novo\n")
-#hvg_genes <- rownames(adata$var)[adata$var$hvg]
-#cat("Using", length(hvg_genes), "HVGs from input dataset\n")
-#VariableFeatures(seurat_obj) <- hvg_genes
 seurat_obj <- FindVariableFeatures(seurat_obj)
 
 cat("Split by batch and perform CCA integration\n")
@@ -70,9 +66,6 @@ seurat_obj[["RNA"]] <- split(seurat_obj[["RNA"]], f = seurat_obj$batch)
 seurat_obj <- ScaleData(seurat_obj)
 seurat_obj <- RunPCA(seurat_obj, npcs=par$dims)
 
-#For GTEx, we get 
-#Error: k.weight (100) is set larger than the number of cells in the smallest object (40).
-#Please choose a smaller k.weight.
 c <- table(obs$batch)
 k.weight = min(min(c), par$kweight)
 

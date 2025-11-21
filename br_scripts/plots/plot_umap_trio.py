@@ -4,17 +4,17 @@ import matplotlib.pyplot as plt
 import sys
 
 # --- Configuration ---
-FILE_REF = sys.argv[4]
-FILE1 = sys.argv[1]  # Replace with your first AnnData file path
-FILE2 = sys.argv[2]  # Replace with your second AnnData file path
-FILE3 = sys.argv[3]
+FILE_REF = sys.argv[4] #Baseline (input) AnnData with metadata
+FILE1 = sys.argv[1]  # First AnnData file path - baseline
+FILE2 = sys.argv[2]  # Second AnnData file path - scaled
+FILE3 = sys.argv[3]  # Third AnnData file path - filtered
 HD_EMBEDDING_KEY = "X_emb"  # The key for the high-D embedding in .obsm
 UMAP_KEY = "X_umap"          # The standard key where UMAP results are stored
 COLOR_KEY = "batch" #"cell_type"          # The column in .obs to color the cells by
 OUTPUT_FILE = sys.argv[5]
 POINT_SIZE = 5               # Small point size for large cell numbers
 FIGSIZE = (14, 5)            # Figure size for two side-by-side plots
-METHOD = "SCA" #"Scanorama"
+METHOD = "Scanorama"
 
 # --- Helper Function to Check, Compute, and Save UMAP ---
 def process_data_for_umap(file_path: str, hd_key: str, umap_key: str) -> ad.AnnData:
@@ -34,10 +34,6 @@ def process_data_for_umap(file_path: str, hd_key: str, umap_key: str) -> ad.AnnD
     # 1. Check if UMAP already exists
     if umap_key in adata.obsm:
         print(f"UMAP results found in .obsm['{umap_key}']. Skipping computation.")
-        if "cell_type" not in adata.obs_keys():
-            ad_ref = sc.read_h5ad(FILE_REF)
-            adata.obs["cell_type"] = ad_ref.obs.cell_type
-            adata.write_h5ad(file_path)
         return adata
 
     print(f"UMAP not found. Computing UMAP from .obsm['{hd_key}']...")
@@ -116,7 +112,7 @@ sc.pl.umap(
 )
 axes[1].set_title(METHOD + " w/ BR Scale", fontsize=16)
 
-# 3. Plot the second computed UMAP
+# 4. Plot the third computed UMAP
 sc.pl.umap(
     adata3, 
     color=COLOR_KEY, 
@@ -130,18 +126,19 @@ plt.tight_layout()
 plt.savefig(OUTPUT_FILE, dpi=300)
 
 
-# Position the legend outside of the subplots
+# Save legend information
 handles, labels = axes[1].get_legend_handles_labels()
-
 axes[1].get_legend().remove()
 
-
-##REPLOT TO GET AN SVG WITH FRAMES
-# 4. Adjust layout and save
 plt.tight_layout()
 plt.savefig(OUTPUT_FILE, dpi=300)
 print(f"Plot saved successfully to {OUTPUT_FILE}")
+
+
+## Re-plot with only a few points to get an SVG with frames and text to use.
 fig, axes = plt.subplots(nrows=1, ncols=3, figsize=FIGSIZE, constrained_layout=True) 
+
+# 2. Plot the first computed UMAP
 sc.pl.umap(
     adata1[:10], 
     color=COLOR_KEY, 
@@ -164,7 +161,7 @@ sc.pl.umap(
 )
 axes[1].set_title(METHOD + " w/ BR Scale", fontsize=16)
 
-# 3. Plot the third computed UMAP
+# 4. Plot the third computed UMAP
 sc.pl.umap(
     adata3[:10], 
     color=COLOR_KEY, 
@@ -177,7 +174,6 @@ axes[2].set_title(METHOD + " w/ BR Filter", fontsize=16)
 fig.legend(handles, labels, loc='lower center', 
             #bbox_to_anchor=(0.5, -0.05),
             ncol=len(labels), 
-            #title="Mouse Pancreas Atlas Study Label", 
             title="Immune Cell Atlas Batch Label",
             frameon=False, title_fontsize=16, fontsize=12, handletextpad=0.2) 
 plt.tight_layout()

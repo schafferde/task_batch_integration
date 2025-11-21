@@ -151,17 +151,11 @@ def create_parser():
     )
 
 
-
-
-
     return parser
 
 if __name__ == '__main__':
     parser = create_parser()
     args = parser.parse_args()
-
-    
-
     
     if args.select:
         approach = "select"
@@ -169,7 +163,6 @@ if __name__ == '__main__':
         approach = "select+scale"
     else:
         approach = "scale"
-
 
     methods = ["Harm", "PCA", "SCA", "Scan", "Seurat"]
     total_dims = args.dims
@@ -207,14 +200,14 @@ if __name__ == '__main__':
         dfs.append(cur_df)
     final_df = pd.concat(dfs + [type_row])
    
-    # Fix some typos
+    # Fix some typos, if they occur
     def rename(s):
         return s.replace("select", "filter").replace("Shil", "Sil").replace("CILISI","cLISI").replace("GraphCons","GraphCon")
 
     # Apply the function to the index
     final_df.index = final_df.index.to_series().apply(rename)
 
-    out_name = f'tables/Combined_{total_dims}_{approach}_{"biocons" if args.biocons else "batch"}_scores_v1'
+    out_name = f'initial_tables/Combined_{total_dims}_{approach}_{"biocons" if args.biocons else "batch"}_scores_v1'
     final_df.to_csv(out_name + ".csv")
     
     plot_results_table(final_df, save_path=out_name + ".svg")
