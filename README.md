@@ -34,16 +34,25 @@ Much of our benchmarking was done using the OpenProblems pipeline, and this repo
     - Used unmodified: `scripts/run_benchmark/run_test_local.sh` runs the pipeline on the small test dataset.
     
 ## Other Scripts
-``br_scripts/`` contains two other classes of scripts used in preparing BatchRefiner:
-1. ``br_scripts/inital`` contains scripts for wourking with our inital dataset, specifically: running baseline methods, scoring dimensions, and testing BatchRefiner modes
-1. ``br_scripts/plots`` contains plotting code. 
-
-Please see the READMEs in each of those sub-directories for more information.
+`br_scripts/` contains two other classes of scripts used in preparing BatchRefiner:
+1. ``br_scripts/inital`` contains scripts for working with our inital dataset, specifically: running baseline methods, scoring dimensions, and testing BatchRefiner modes:
+    - `run_baselines.py` contains code for running PCA, Scanorama, Harmony, and SCA on the initial dataset.
+    - `run_seurat.R` runs Seurat on the initial dataset.
+    - `example_dim_score.py` is an example of code to generate 10 benchmarks for of each dimension of an embedding of the inital dataset.
+    - `stack_df.py` combines dataframes of benchmarking score from `scib-metrics`, specifically used for combining partial outputs from above.
+    - `method_scorer.py` uses the outputs of the above scripts (baseline embeddings and dimension scores) to evaluate a large number of BatchRefiner-stryle approaches.
+1. `br_scripts/plots` contains plotting code. 
+    - `plot_supp_inital.py` processes the output from `method_scorer.py` into tables, and also produces the table-like supplementary figures of the inital benchmarking
+    - `plot_main_inital.py` process selected output from `plot_supp_inital.py` (see below) to create the panels of the main-text figure on initial benchmarking.
+    - `plot_6dataset_results.py` processes the output of `generate_br_table.py` (see below) to create the panels of all figures in OpenProblems benchmarking.
+    - `plot_umap_trio.py` generates and plots UMAPs for three embeddings, which are intended to be baseline, scaled, and filtered for a particular baseline method and dataset.
 
 ## Data
 ``br_data`` contains two data files:
-1. (Initial Data)
-2. (OP data)
+1. `initial_tables.zip` contains the non-figure outputs of `plot_supp_initial.py`, which are benchmarking results from scib-metrics for each of 12 sets of tests on the initial data.
+2. `results_table_1116.csv` contains the accumulated results from OpenProblems benchmarking, the output of `generate_br_table.py`
+    - Relative to the names of each method as implemented (above), we renamed `seurat_cca` to `seurat` and `scanorama_integrate` to `scanorama`. Also, methods filtering 100 dimensions from 200 or 300 dimensions are named `sel2` or `sel3`, while the default of filtering 50 from 100 is just `sel`. 
+
 ---
 ## The original README from the OpenProblems repository follows below.
 
