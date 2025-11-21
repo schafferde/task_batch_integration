@@ -5,8 +5,11 @@ import argparse
 from pathlib import Path
 import sys
 
-
-KBET_LOOKUP_DF = pd.read_csv("kbet_lookup_table.csv")
+try:
+    KBET_LOOKUP_DF = pd.read_csv("kbet_lookup_table.csv")
+except:
+    print("No kbet lookup table found.", file=sys.stderr)
+    KBET_LOOKUP_DF = pd.DataFrame(columns=['dataset', 'method'])
 
 def parse_yaml_data(file_path: Path) -> list:
     """Loads and flattens data from a single YAML file."""
@@ -114,7 +117,7 @@ def process_all_data(all_flat_data: list, lookup_df: pd.DataFrame) -> pd.DataFra
         if not_found_count > 0:
             # Get the details of the missing lookups for a better warning
             missing_lookups = merged_kbet[~found_mask][['Dataset ID', 'Method ID']].drop_duplicates()
-            print(f"Warning: {not_found_count} 'kbet' entries with value -1 were not found in the lookup table and will remain -1.")
+            print(f"Warning: {not_found_count} 'kbet' entries with value -1 were queried into the lookup table.")
             print("Missing (Dataset ID, Method ID) combinations:")
             print(missing_lookups.to_string(index=False), file=sys.stderr)
 

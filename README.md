@@ -1,3 +1,53 @@
+# Batch Integration with BatchRefiner
+## Description
+
+This branch of this fork of `openprobems/task_batch_integration` contains code and materials associated with BatchRefiner:
+
+Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Improving batch integration of scRNA-seq cell embeddings
+with BatchRefiner. *In preparation, RECOMB submission.*
+
+## Methods and Modifications for OpenProblems Pipeline
+Much of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
+- `src/methods` contains updated and additional baseline methods, as well as BatchRefiner-modified methods.
+    - SCA, PCA, NMF, and Seurat CCA are new. LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
+      scVI is modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage.
+      Scanorama (`scanorama_integrate`) is modified to produce only embedding output, we also include `scanorama_correct` for correct-count output.
+      Please see each method script for implementation details. 
+        - Our pipeline-compatible implementations of SCA, PCA, NMF, and Seurat CCA, as well as our split of Scanorama into two methods,
+          are also available as standalone branches of this repository. 
+    - The BatchRefiner methods are named as `baseline_mode_metric`. Baseline is the baseline method, mode is either `scale` or `sel` (for select/filter),
+      and metric is either `pcr` or `ilisi`. BatchRefiner methods for scVI, Seurat, LIGER, and NMF are modified to load in embeddings computed while running
+      the baseline methods. The `ilisi_sel` implementations for scVI, Seurat, and LIGER are also modified to load dimension scores saved by the correspdoning
+      `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
+- `scripts` contains some added scripts that we used for running the pipeline and associated data handling. Scripts not mentioned are included from
+    the original repository and may or may not work out of the box.
+    - Added: `scripts/create_resources/download_resources.sh` contains the command we used to download processed datasets from OpenProblems' AWS storage.
+    - Added: `scripts/run_benchmark/revised_run_local.sh` runs the pipeline on the full datasets locally.
+    - Added: `new_labels_ci.config`, giving limiting values for nextflow resource usage labels used by above. We tuned these values, and the resource usages of a few 
+       methods and metrics, in cases where more resources (time, CPUs, or memory) were needed. The current values and labelings of each componenet were sufficient 
+       for us to run the pipeline. In many cases, the current resource limits are likely not tight bounds.
+    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files,
+       followed by `-o <output>csv.`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which
+       would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used. 
+    - Used unmodified: `scripts/project/build_all_docker_containers.sh` is used to build the pipeline before running.
+    - Used unmodified: `scripts/create_resources/test_resources.sh` downloads the small test dataset.
+    - Used unmodified: `scripts/run_benchmark/run_test_local.sh` runs the pipeline on the small test dataset.
+    
+## Other Scripts
+``br_scripts/`` contains two other classes of scripts used in preparing BatchRefiner:
+1. ``br_scripts/inital`` contains scripts for wourking with our inital dataset, specifically: running baseline methods, scoring dimensions, and testing BatchRefiner modes
+1. ``br_scripts/plots`` contains plotting code. 
+
+Please see the READMEs in each of those sub-directories for more information.
+
+## Data
+``br_data`` contains two data files:
+1. (Initial Data)
+2. (OP data)
+---
+## The original README from the OpenProblems repository follows below.
+
+
 # Batch Integration
 
 
