@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_method.yaml
+name: seurat_cca
+label: Seurat-CCA
+summary: Canonical Correlation Analysis with Seurat
+description: |
+  ...
+references:
+  doi: 10.1038/s41587-023-01767-y
+links:
+  repository: https://github.com/satijalab/seurat
+  documentation: https://satijalab.org/seurat/
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k
+arguments:
+  - name: --dims
+    type: integer
+    default: 100
+    description: Embedding dimension  
+  - name: --kweight
+    type: integer
+    default: 100
+    description: k.weight for CCA    
+resources:
+  - type: r_script
+    path: script.R
+engines:
+  - type: docker
+    image: openproblems/base_r:1
+    setup:
+      - type: r
+        cran:
+          - Seurat
+          - SeuratObject
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [verylowcpu, highmem, veryhightime]

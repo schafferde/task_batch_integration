@@ -1,18 +1,20 @@
 import sys
 import anndata as ad
-import numpy as np
-import harmonypy as hm
 import scanpy as sc
+from scib.metrics.pcr import pc_regression
+from multiprocessing import Pool
+import numpy as np
+import warnings
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "dimred": 100
+    "n_comps": 100,
+    "n_comps_init": 300
 }
 meta = {
-    "name": "harmonypy_vd",
-    "resources_dir": "src/utils"
+    "name": "pca_sel_pcr",
 }
 ## VIASH END
 
@@ -29,21 +31,28 @@ adata = read_anndata(
 )
 
 print(">> Run PCA", flush=True)
-sc.pp.pca(adata, n_comps=par["dimred"])
-print(">> Run harmonypy", flush=True)
-print(adata.obsm["X_pca"].shape, flush=True)
-out = hm.run_harmony(
-  adata.obsm["X_pca"], #Overwritten by above
-  adata.obs,
-  "batch"
-)
+sc.pp.pca(adata, n_comps=par["n_comps_init"])
 
+def column_pcr_reg(i):
+    return pc_regression(adata.obsm['X_pca'][:, i].reshape((-1,1)), adata.obs['batch'])
+
+print(">> Compute PCR for PCA Columns", flush=True)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    with Pool(20) as p:
+        pcr_afters = np.asarray(p.map(column_pcr_reg, range(par['n_comps_init'])))
+
+
+#Note that we want to minimize pcr_after, which would maximize score
+#columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]
+columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]
+    
 print("Store output", flush=True)
 output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": out.Z_corr.transpose()
+        "X_emb": adata.obsm['X_pca'][:, columns]
     },
     shape=adata.shape,
     uns={

@@ -1,6 +1,6 @@
 __merge__: /src/api/comp_method.yaml
-name: harmonypy_vd
-label: Harmonypy w/ 100 dimensions
+name: harmonypy_scale_pcr
+label: Harmonypy Scaled by PCR
 summary: harmonypy is a port of the harmony R package by Ilya Korsunsky.
 description: |
   Harmony is a general-purpose R package with an efficient algorithm for integrating multiple data sets.
@@ -32,8 +32,9 @@ engines:
       - type: python
         pypi:
           - harmonypy
+          - scib==1.1.7          
 runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowcpu, highmem, hightime]
+      label: [midcpu, highmem, hightime]

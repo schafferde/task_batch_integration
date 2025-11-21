@@ -1,0 +1,3 @@
+Changed from torch to base image as
+1) not running SCVI again
+2) some version compatability issue with scib lisi

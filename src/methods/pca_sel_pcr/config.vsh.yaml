@@ -1,0 +1,42 @@
+__merge__: /src/api/comp_method.yaml
+name: pca_sel_pcr
+label: PCA Selected by PCR
+summary: PCA (re-run)
+description: |
+  It's PCA
+references:
+  # Pedregosa, F., Varoquaux, G., Gramfort, A. et al.
+  # Scikit-learn: Machine Learning in Python
+  # arXiv, 1201.0490v4 (2018). https://doi.org/10.48550/arXiv.1201.0490
+  doi: 10.48550/arXiv.1201.0490
+links:
+  repository: https://github.com/scverse/scanpy/blob/1.11.4/src/scanpy/preprocessing/_pca/__init__.py#L59-L425
+  documentation: https://scanpy.readthedocs.io/en/stable/generated/scanpy.pp.pca.html
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k 
+arguments:
+  - name: --n_comps
+    type: integer
+    default: 50
+    description: Embedding dimension   
+  - name: --n_comps_init
+    type: integer
+    default: 100
+    description: Number of source columns    
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi:
+          - scib==1.1.7         
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, highmem, veryhightime]

@@ -1,0 +1,38 @@
+__merge__: /src/api/comp_method.yaml
+name: nmf
+label: NMF
+summary: Non-negative matirx factorization
+description: |
+  It's NMF
+references:
+  # Pedregosa, F., Varoquaux, G., Gramfort, A. et al.
+  # Scikit-learn: Machine Learning in Python
+  # arXiv, 1201.0490v4 (2018). https://doi.org/10.48550/arXiv.1201.0490
+  doi: 10.48550/arXiv.1201.0490
+links:
+  repository: https://github.com/scikit-learn/scikit-learn/
+  documentation: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k 
+arguments:
+  - name: --n_comps
+    type: integer
+    default: 100
+    description: Embedding dimension  
+  - name: --max_iter
+    type: integer
+    default: 500
+    description: Max NMF iterations      
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, highmem, hightime]

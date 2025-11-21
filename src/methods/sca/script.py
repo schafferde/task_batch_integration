@@ -1,18 +1,17 @@
 import sys
 import anndata as ad
-import numpy as np
-import harmonypy as hm
-import scanpy as sc
+from shannonca.dimred import reduce_scanpy
+
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "dimred": 100
+    "iters": 5,
+    "n_comps": 100
 }
 meta = {
-    "name": "harmonypy_vd",
-    "resources_dir": "src/utils"
+    "name": "sca",
 }
 ## VIASH END
 
@@ -28,22 +27,16 @@ adata = read_anndata(
     uns="uns"
 )
 
-print(">> Run PCA", flush=True)
-sc.pp.pca(adata, n_comps=par["dimred"])
-print(">> Run harmonypy", flush=True)
-print(adata.obsm["X_pca"].shape, flush=True)
-out = hm.run_harmony(
-  adata.obsm["X_pca"], #Overwritten by above
-  adata.obs,
-  "batch"
-)
+print(">> Run SCA", flush=True)
+reduce_scanpy(adata, keep_loadings=False, layer=None, key_added='sca', iters=par['iters'], n_comps=par['n_comps'])
+
 
 print("Store output", flush=True)
 output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": out.Z_corr.transpose()
+        "X_emb": adata.obsm['X_sca']
     },
     shape=adata.shape,
     uns={

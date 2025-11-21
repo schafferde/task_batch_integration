@@ -5,12 +5,18 @@ requireNamespace("rliger", quietly = TRUE)
 ## VIASH START
 par <- list(
   input = "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
-  output = "output.h5ad"
+  output = "output.h5ad",
+  dim=100L
 )
 meta <- list(
-  name = "liger"
+  name = "liger_vd"
 )
 ## VIASH END
+
+#Temp skip completed tasks
+if (!(grepl("tabula", par$output) || grepl("gtex", par$output))) {
+  quit(status = 1, save = "no")
+}
 
 cat("Read input\n")
 adata <- anndata::read_h5ad(par$input)
@@ -82,7 +88,10 @@ cat(">> Perform scaling\n")
 lobj <- rliger::scaleNotCenter(lobj, removeMissing = FALSE)
 
 cat(">> Joint Matrix Factorization\n")
-lobj <- rliger::runIntegration(lobj, k = 20)
+min_batch = min(table(adata$obs$batch))
+k = min(min_batch, par$dim)
+cat("Using ", k, " dimensions\n")
+lobj <- rliger::runIntegration(lobj, k = k)
 
 cat(">> Quantile normalization\n")
 lobj <- rliger::quantileNorm(lobj)

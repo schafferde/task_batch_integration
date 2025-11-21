@@ -1,18 +1,17 @@
 import sys
 import anndata as ad
-import numpy as np
-import harmonypy as hm
 import scanpy as sc
+from sklearn.decomposition import NMF
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "dimred": 100
+    "n_comps": 100,
+    "max_iter": 500
 }
 meta = {
-    "name": "harmonypy_vd",
-    "resources_dir": "src/utils"
+    "name": "nmf",
 }
 ## VIASH END
 
@@ -28,22 +27,17 @@ adata = read_anndata(
     uns="uns"
 )
 
-print(">> Run PCA", flush=True)
-sc.pp.pca(adata, n_comps=par["dimred"])
-print(">> Run harmonypy", flush=True)
-print(adata.obsm["X_pca"].shape, flush=True)
-out = hm.run_harmony(
-  adata.obsm["X_pca"], #Overwritten by above
-  adata.obs,
-  "batch"
-)
+print(">> Run NMF", flush=True)
+nmf_model = NMF(n_components=par["n_comps"], init='nndsvda', random_state=0, max_iter=par["max_iter"], solver='mu')
+W = nmf_model.fit_transform(adata.X) # W: cell x program matrix
+print("NMF ran for", nmf_model.n_iter_, "iterations.")
 
 print("Store output", flush=True)
 output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": out.Z_corr.transpose()
+        "X_emb": W
     },
     shape=adata.shape,
     uns={

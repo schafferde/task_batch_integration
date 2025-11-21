@@ -1,6 +1,6 @@
 __merge__: /src/api/comp_method.yaml
-name: liger_vd
-label: LIGER
+name: liger_sel_ilisi
+label: LIGER selected by iLISI
 summary: Linked Inference of Genomic Experimental Relationships
 description: |
   LIGER or linked inference of genomic experimental relationships uses iNMF
@@ -16,24 +16,27 @@ info:
   method_types: [embedding]
   preferred_normalization: log_cp10k
 arguments:
-  - name: --dim
+  - name: --n_comps
+    type: integer
+    default: 50
+    description: Embedding dimension
+  - name: --n_comps_init
     type: integer
     default: 100
-    description: Embedding dimension (k)
+    description: Initial embedding dimension  
 resources:
-  - type: r_script
-    path: script.R
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
 engines:
   - type: docker
-    image: openproblems/base_r:1
+    image: openproblems/base_python:1
     setup:
-      - type: apt
-        packages: cmake
-      - type: r
-        cran: rliger
-        github: welch-lab/RcppPlanc
+      - type: python
+        pypi:
+          - scib==1.1.7
 runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowcpu, highmem, hightime]
+      label: [lowcpu, highmem, midtime]

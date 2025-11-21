@@ -1,8 +1,10 @@
 import sys
 import anndata as ad
-#from scvi.model import SCVI
-import time
+from scib.metrics.pcr import pc_regression
+from multiprocessing import Pool
 import numpy as np
+import warnings
+import time
 
 ## VIASH START
 par = {
@@ -10,12 +12,12 @@ par = {
     'output': 'output.h5ad',
     'n_hvg': 2000,
     'n_latent': 30,
-    'n_hidden': 128,
+    'n_hidden': 100,
     'n_layers': 2,
     'max_epochs': 400
 }
 meta = {
-    'name' : 'scvi',
+    'name' : 'scvi_scale_pcr',
 }
 ## VIASH END
 
@@ -38,10 +40,6 @@ if par["n_hvg"]:
 
 print("Processing data", flush=True)
 """
-fname = par["output"].replace("h5ad", ".forSCVI.h5ad")
-print(fname, flush=True)
-adata.write_h5ad(fname)
-
 print("Run scVI", flush=True)
 model_kwargs = {
     key: par[key]
@@ -49,32 +47,44 @@ model_kwargs = {
     if par[key] is not None
 }
 
-print(model_kwargs)
-resname = par["output"].replace("h5ad", ".fromSCVI.npy")
-print(resname, flush=True)
-
-# SCVI.setup_anndata(adata, batch_key="batch")
-#vae = SCVI(adata, **model_kwargs)
-#vae.train(max_epochs=par["max_epochs"], train_size=1.0)
-#results = vae.get_latent_representation()
+SCVI.setup_anndata(adata, batch_key="batch")
+vae = SCVI(adata, **model_kwargs)
+vae.train(max_epochs=par["max_epochs"], train_size=1.0)
+results = vae.get_latent_representation()
 """
 time.sleep(60*5)
+#Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
-
 results = np.load(resname)
+def column_pcr_reg(i):
+    return pc_regression(results[:, i].reshape((-1,1)), adata.obs['batch'])
 
-print("Store outputs", flush=True)
+print(">> Compute PCR for scVI Columns", flush=True)
+with warnings.catch_warnings():
+    warnings.simplefilter("ignore", category=FutureWarning)
+    with Pool(20) as p:
+        pcr_afters = np.asarray(p.map(column_pcr_reg, range(results.shape[1])))
+
+#We flip and scale based only on pcr_after, so the highest column gets 1 and the lowest gets 0.
+#Alternately, we could use the scores (already normalized and with a floor for bad columns) to scale
+scores = -pcr_afters #Because lower is better
+scores -= np.min(scores)
+max_val = np.max(scores)
+scores /= max_val if max_val > 0 else 1 #Becomes a no-op if all the same
+    
+print("Store output", flush=True)
 output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": results,
+        "X_emb": results * scores
     },
+    shape=adata.shape,
     uns={
         "dataset_id": adata.uns["dataset_id"],
         "normalization_id": adata.uns["normalization_id"],
         "method_id": meta["name"],
-    },
+    }
 )
 
 print("Write output to file", flush=True)
