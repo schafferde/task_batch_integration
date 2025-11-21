@@ -8,18 +8,22 @@ with BatchRefiner. *In preparation, RECOMB submission.*
 
 ## Methods and Modifications for OpenProblems Pipeline
 Much of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
-- `src/methods` contains updated and additional baseline methods, as well as BatchRefiner-modified methods.
+- `src/methods/` contains updated and additional baseline methods, as well as BatchRefiner-modified methods.
     - SCA, PCA, NMF, and Seurat CCA are new. LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
       scVI is modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage.
       Scanorama (`scanorama_integrate`) is modified to produce only embedding output, we also include `scanorama_correct` for correct-count output.
       Please see each method script for implementation details. 
         - Our pipeline-compatible implementations of SCA, PCA, NMF, and Seurat CCA, as well as our split of Scanorama into two methods,
           are also available as standalone branches of this repository. 
-    - The BatchRefiner methods are named as `baseline_mode_metric`. Baseline is the baseline method, mode is either `scale` or `sel` (for select/filter),
+    - The BatchRefiner methods are named as `Baseline_mode_metric`. Baseline is the baseline method, mode is either `scale` or `sel` (for select/filter),
       and metric is either `pcr` or `ilisi`. BatchRefiner methods for scVI, Seurat, LIGER, and NMF are modified to load in embeddings computed while running
       the baseline methods. The `ilisi_sel` implementations for scVI, Seurat, and LIGER are also modified to load dimension scores saved by the correspdoning
       `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
-- `scripts` contains some added scripts that we used for running the pipeline and associated data handling. Scripts not mentioned are included from
+- `src/workflow/run_benchmark` contains the top-level script for benchmarking. We modified this to include the set of 40 methods we used. 
+- `src/metrics/` contains the various OpenProblems metrics. We modified the resource usage tags of a few based on our observations and the values we chose for each tag (below).
+   We also modified `kbet` to use [our slight modification to the scib implementation](https://github.com/schafferde/scib/tree/kbet_memory). 
+   It changes some data types in a deterministic preprocessing step to greatly reduce time and memory usage, especially for numberous cell types. 
+- `scripts/` contains some added scripts that we used for running the pipeline and associated data handling. Scripts not mentioned are included from
     the original repository and may or may not work out of the box.
     - Added: `scripts/create_resources/download_resources.sh` contains the command we used to download processed datasets from OpenProblems' AWS storage.
     - Added: `scripts/run_benchmark/revised_run_local.sh` runs the pipeline on the full datasets locally.
@@ -39,10 +43,10 @@ Much of our benchmarking was done using the OpenProblems pipeline, and this repo
     - `run_baselines.py` contains code for running PCA, Scanorama, Harmony, and SCA on the initial dataset.
     - `run_seurat.R` runs Seurat on the initial dataset.
     - `example_dim_score.py` is an example of code to generate 10 benchmarks for of each dimension of an embedding of the inital dataset.
-    - `stack_df.py` combines dataframes of benchmarking score from `scib-metrics`, specifically used for combining partial outputs from above.
+    - `stack_df.py` combines dataframes of benchmarking scores from `scib-metrics`, specifically used for combining partial outputs from above.
     - `method_scorer.py` uses the outputs of the above scripts (baseline embeddings and dimension scores) to evaluate a large number of BatchRefiner-stryle approaches.
 1. `br_scripts/plots` contains plotting code. 
-    - `plot_supp_inital.py` processes the output from `method_scorer.py` into tables, and also produces the table-like supplementary figures of the inital benchmarking
+    - `plot_supp_inital.py` processes the output from `method_scorer.py` into tables, and also produces the table-like supplementary figures of the inital benchmarking.
     - `plot_main_inital.py` process selected output from `plot_supp_inital.py` (see below) to create the panels of the main-text figure on initial benchmarking.
     - `plot_6dataset_results.py` processes the output of `generate_br_table.py` (see below) to create the panels of all figures in OpenProblems benchmarking.
     - `plot_umap_trio.py` generates and plots UMAPs for three embeddings, which are intended to be baseline, scaled, and filtered for a particular baseline method and dataset.
