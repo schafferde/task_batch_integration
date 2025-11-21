@@ -11,8 +11,8 @@ par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
     "iters": 5,
-    "n_comps": 100,
-    "n_comps_init": 300
+    "n_comps": 50,
+    "n_comps_init": 100
 }
 meta = {
     "name": "sca_sel_pcr",
@@ -43,20 +43,6 @@ with warnings.catch_warnings():
     with Pool(20) as p:
         pcr_afters = np.asarray(p.map(column_pcr_reg, range(par['n_comps_init'])))
 
-
-#This is fixed, so we just don't need this
-"""
-#Want to reuse this, and base on existing PCA
-pcr_before = pc_regression(
-        adata.obsm["X_pca"],
-        adata.obs['batch'],
-        #Remark: this key, from OP docs, differs from hardcoded default of SCIB.pcr
-        #So, without changeding (from ["pcr"]["variance"]), would recompute always?
-        pca_var=adata.uns["pca_variance"],
-        n_threads=20,
-    )
-scores = (pcr_before - pcr_afters) / pcr_before
-"""    
 
 #Note that we want to minimize pcr_after, which would maximize score
 #columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]

@@ -9,7 +9,7 @@ par <- list(
   dim=100L
 )
 meta <- list(
-  name = "liger_vd"
+  name = "liger"
 )
 ## VIASH END
 

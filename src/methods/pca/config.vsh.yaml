@@ -1,7 +1,7 @@
 __merge__: /src/api/comp_method.yaml
 name: pca
 label: PCA
-summary: PCA (re-run)
+summary: PCA (with more dimensions)
 description: |
   It's PCA
 references:

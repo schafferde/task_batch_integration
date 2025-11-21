@@ -30,6 +30,7 @@ adata = read_anndata(
     uns="uns"
 )
 time.sleep(60*5)
+#Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromLiger.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
 def column_pcr_reg(i):

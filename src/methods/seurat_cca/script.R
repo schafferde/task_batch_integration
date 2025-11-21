@@ -25,7 +25,7 @@ meta <- list(
 )
 ## VIASH END
 
-#Bypass, allowing one to copy output file in
+#Bypass, allowing one to copy output file in while this sleeps
 #Sys.sleep(300)
 #q()
 

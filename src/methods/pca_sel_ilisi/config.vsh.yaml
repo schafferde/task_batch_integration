@@ -18,11 +18,11 @@ info:
 arguments:
   - name: --n_comps
     type: integer
-    default: 100
+    default: 50
     description: Embedding dimension
   - name: --n_comps_init
     type: integer
-    default: 200
+    default: 100
     description: Number of source columns    
 resources:
   - type: python_script

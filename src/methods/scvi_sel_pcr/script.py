@@ -11,8 +11,8 @@ par = {
     'input': 'resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad',
     'output': 'output.h5ad',
     'n_hvg': 2000,
-    'n_latent': 30,
-    'n_hidden': 100,
+    'n_latent': 100,
+    'n_hidden': 128,
     'n_layers': 2,
     'max_epochs': 400,
     'n_final': 50
@@ -39,20 +39,6 @@ if par["n_hvg"]:
     idx = adata.var["hvg_score"].to_numpy().argsort()[::-1][:par["n_hvg"]]
     adata = adata[:, idx].copy()
 
-print("Processing data", flush=True)
-"""
-print("Run scVI", flush=True)
-model_kwargs = {
-    key: par[key]
-    for key in ["n_latent", "n_hidden", "n_layers"]
-    if par[key] is not None
-}
-
-SCVI.setup_anndata(adata, batch_key="batch")
-vae = SCVI(adata, **model_kwargs)
-vae.train(max_epochs=par["max_epochs"], train_size=1.0)
-results = vae.get_latent_representation()
-"""
 time.sleep(60*5)
 #Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")

@@ -2,9 +2,7 @@ import sys
 import anndata as ad
 import scanpy as sc
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 import time
 
 ## VIASH START
@@ -39,20 +37,6 @@ if par["n_hvg"]:
     idx = adata.var["hvg_score"].to_numpy().argsort()[::-1][:par["n_hvg"]]
     adata = adata[:, idx].copy()
 
-print("Processing data", flush=True)
-"""
-print("Run scVI", flush=True)
-model_kwargs = {
-    key: par[key]
-    for key in ["n_latent", "n_hidden", "n_layers"]
-    if par[key] is not None
-}
-
-SCVI.setup_anndata(adata, batch_key="batch")
-vae = SCVI(adata, **model_kwargs)
-vae.train(max_epochs=par["max_epochs"], train_size=1.0)
-results = vae.get_latent_representation()
-"""
 time.sleep(60*5)
 #Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
@@ -70,7 +54,7 @@ def column_ilisi(i):
     ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
     return ilisi
 
-print(">> Compute iLISI for PCA Columns", flush=True)
+print(">> Compute iLISI for scVI Columns", flush=True)
 scores = np.asarray([column_ilisi(i) for i in range(results.shape[1])])
 np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
 

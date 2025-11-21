@@ -12,8 +12,8 @@ par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
     "iters": 5,
-    "n_comps": 100,
-    "n_comps_init": 300
+    "n_comps": 50,
+    "n_comps_init": 100
 }
 meta = {
     "name": "sca_sel_ilisi",

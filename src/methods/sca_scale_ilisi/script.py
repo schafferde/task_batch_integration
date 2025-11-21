@@ -3,9 +3,7 @@ import anndata as ad
 import scanpy as sc
 from shannonca.dimred import reduce_scanpy
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 
 ## VIASH START
 par = {

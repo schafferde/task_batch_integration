@@ -1,46 +1,21 @@
 import sys
 import anndata as ad
 import scanorama
+import numpy as np
 
 ## VIASH START
 par = {
     'input': 'resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad',
     'output': 'output.h5ad',
+    'dimred': 100
 }
 meta = {
-    'name': 'foo',
-    'config': 'bar'
+    'name': 'scanorama_integrate',
 }
 ## VIASH END
 
 sys.path.append(meta["resources_dir"])
 from read_anndata_partial import read_anndata
-
-
-# based on scib
-# -> https://github.com/theislab/scib/blob/59ae6eee5e611d9d3db067685ec96c28804e9127/scib/utils.py#L51C1-L72C62
-def merge_adata(*adata_list, **kwargs):
-    """Merge adatas from list while remove duplicated ``obs`` and ``var`` columns
-
-    :param adata_list: ``anndata`` objects to be concatenated
-    :param kwargs: arguments to be passed to ``anndata.AnnData.concatenate``
-    """
-
-    if len(adata_list) == 1:
-        return adata_list[0]
-
-    # Make sure that adatas do not contain duplicate columns
-    for _adata in adata_list:
-        for attr in ("obs", "var"):
-            df = getattr(_adata, attr)
-            dup_mask = df.columns.duplicated()
-            if dup_mask.any():
-                print(
-                    f"Deleting duplicated keys `{list(df.columns[dup_mask].unique())}` from `adata.{attr}`."
-                )
-                setattr(_adata, attr, df.loc[:, ~dup_mask])
-
-    return ad.AnnData.concatenate(*adata_list, **kwargs)
 
 
 print('Read input', flush=True)
@@ -55,10 +30,15 @@ adata = read_anndata(
 print('Run scanorama', flush=True)
 split = []
 batch_categories = adata.obs['batch'].cat.categories
-for i in batch_categories:
-    split.append(adata[adata.obs['batch'] == i].copy())
-corrected = scanorama.correct_scanpy(split, return_dimred=True)
-corrected = merge_adata(*corrected, batch_key='batch', batch_categories=batch_categories, index_unique=None)
+for b in batch_categories:
+    split.append(adata[adata.obs['batch'] == b].copy())
+scanorama.integrate_scanpy(split, dimred=par["dimred"])
+
+#From https://colab.research.google.com/drive/1CebA3Ow4jXITK0dW5el320KVTX_szhxG
+result = np.zeros((adata.shape[0], split[0].obsm["X_scanorama"].shape[1]))
+for i, b in enumerate(batch_categories):
+    result[adata.obs['batch'] == b] = split[i].obsm["X_scanorama"]
+
 
 print("Store output", flush=True)
 output = ad.AnnData(
@@ -69,12 +49,10 @@ output = ad.AnnData(
         'normalization_id': adata.uns['normalization_id'],
         'method_id': meta['name'],
     },
-    layers={
-        'corrected_counts': corrected.X,
-    },
     obsm={
-        'X_emb': corrected.obsm["X_scanorama"],
-    }
+        'X_emb': result
+    },
+    shape=adata.shape,
 )
 
 print("Write output to file", flush=True)

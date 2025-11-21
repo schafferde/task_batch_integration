@@ -1,5 +1,5 @@
 __merge__: /src/api/comp_method.yaml
-name: harmonypy_vd
+name: harmonypy
 label: Harmonypy w/ 100 dimensions
 summary: harmonypy is a port of the harmony R package by Ilya Korsunsky.
 description: |
@@ -36,4 +36,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowcpu, highmem, hightime]
+      label: [lowcpu, highmem, midtime]

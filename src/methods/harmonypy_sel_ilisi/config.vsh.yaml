@@ -19,11 +19,11 @@ info:
 arguments:
   - name: --dimred
     type: integer
-    default: 100
+    default: 50
     description: Embedding dimension
   - name: --dimred_init
     type: integer
-    default: 200
+    default: 100
     description: Number of source columns        
 resources:
   - type: python_script
@@ -41,4 +41,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [midcpu, highmem, veryhightime]
+      label: [lowcpu, highmem, hightime]

@@ -29,12 +29,13 @@ adata = read_anndata(
     uns="uns"
 )
 time.sleep(60*5)
+#Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromLiger.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
 def column_pcr_reg(i):
     return pc_regression(embedding[:, i].reshape((-1,1)), adata.obs['batch'])
 
-print(">> Compute PCR for PCA Columns", flush=True)
+print(">> Compute PCR for LIGER Columns", flush=True)
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     with Pool(20) as p:

@@ -32,6 +32,7 @@ adata = read_anndata(
 #W = nmf_model.fit_transform(adata.X) # W: cell x program matrix
 
 time.sleep(60*5)
+#Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromNMF.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
 def column_ilisi(i):
@@ -46,7 +47,7 @@ def column_ilisi(i):
     ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
     return ilisi
 
-print(">> Compute iLISI for LIGER Columns", flush=True)
+print(">> Compute iLISI for NMF Columns", flush=True)
 scores = np.asarray([column_ilisi(i) for i in range(par['n_comps'])])
 scores -= np.min(scores)
 max_val = np.max(scores)

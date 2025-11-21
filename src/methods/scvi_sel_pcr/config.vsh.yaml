@@ -21,11 +21,11 @@ arguments:
     description: Number of highly variable genes to use.
   - name: --n_latent
     type: integer
-    default: 30
+    default: 100
     description: Number of latent dimensions.
   - name: --n_hidden
     type: integer
-    default: 100
+    default: 128
     description: Number of hidden units.
   - name: --n_layers
     type: integer
@@ -55,4 +55,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowtime, highmem, lowcpu]
+      label: [lowtime, highmem, midcpu]

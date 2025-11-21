@@ -3,15 +3,14 @@ import anndata as ad
 import harmonypy as hm
 import scanpy as sc
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "dimred": 100
+    "dimred_init": 100,
+    "dimred": 50
 }
 meta = {
     "name": "harmonypy_sel_ilisi",
@@ -53,7 +52,7 @@ def column_ilisi(i):
     ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
     return ilisi
 
-print(">> Compute iLISI for Scanorama Columns", flush=True)
+print(">> Compute iLISI for Harmony Columns", flush=True)
 scores = np.asarray([column_ilisi(i) for i in range(par['dimred_init'])])
 
 columns = np.argpartition(scores, -par["dimred"])[-par["dimred"]:]

@@ -11,7 +11,8 @@ import warnings
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "dimred": 100
+    "dimred_init": 100,
+    "dimred": 50
 }
 meta = {
     "name": "harmonypy_sel_pcr",

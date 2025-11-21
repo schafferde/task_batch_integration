@@ -29,6 +29,7 @@ adata = read_anndata(
     uns="uns"
 )
 time.sleep(60*5)
+#Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromLiger.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
 if embedding.shape[1] <= par["n_comps"]:
@@ -47,11 +48,8 @@ else:
         return ilisi
 
     print(">> Compute iLISI for LIGER Columns", flush=True)
-    if "tabula" in par["output"]:
-        scores = np.asarray([column_ilisi(i) for i in range(embedding.shape[1])])
-        np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
-    else:
-        scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
+    #Read in pre-computed iLISI scores
+    scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
     columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]
     e2 = embedding[:, columns]
     

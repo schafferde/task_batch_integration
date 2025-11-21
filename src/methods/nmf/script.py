@@ -30,6 +30,7 @@ adata = read_anndata(
 print(">> Run NMF", flush=True)
 nmf_model = NMF(n_components=par["n_comps"], init='nndsvda', random_state=0, max_iter=par["max_iter"], solver='mu')
 W = nmf_model.fit_transform(adata.X) # W: cell x program matrix
+#Always < 200 in practice
 print("NMF ran for", nmf_model.n_iter_, "iterations.")
 
 print("Store output", flush=True)

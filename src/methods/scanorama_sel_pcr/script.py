@@ -11,8 +11,8 @@ from scib.metrics.pcr import pc_regression
 par = {
     'input': 'resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad',
     'output': 'output.h5ad',
-    'dimred': 100,
-    'dimred_init': 300
+    'dimred': 50,
+    'dimred_init': 100
 }
 meta = {
     'name': 'scanorama_sel_pcr',

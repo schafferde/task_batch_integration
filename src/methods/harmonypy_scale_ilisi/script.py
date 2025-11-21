@@ -3,9 +3,7 @@ import anndata as ad
 import harmonypy as hm
 import scanpy as sc
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 
 ## VIASH START
 par = {
@@ -53,7 +51,7 @@ def column_ilisi(i):
     ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
     return ilisi
 
-print(">> Compute iLISI for Scanorama Columns", flush=True)
+print(">> Compute iLISI for Harmony Columns", flush=True)
 scores = np.asarray([column_ilisi(i) for i in range(par['dimred'])])
 
 scores -= np.min(scores)

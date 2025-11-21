@@ -1,6 +1,5 @@
 import sys
 import anndata as ad
-import numpy as np
 import harmonypy as hm
 import scanpy as sc
 
@@ -11,7 +10,7 @@ par = {
     "dimred": 100
 }
 meta = {
-    "name": "harmonypy_vd",
+    "name": "harmonypy",
     "resources_dir": "src/utils"
 }
 ## VIASH END

@@ -43,20 +43,6 @@ with warnings.catch_warnings():
         pcr_afters = np.asarray(p.map(column_pcr_reg, range(par['n_comps'])))
 
 
-#We are not using this
-"""
-#Want to reuse this, and base on existing PCA
-pcr_before = pc_regression(
-        adata.obsm["X_pca"],
-        adata.obs['batch'],
-        #Remark: this key, from OP docs, differs from hardcoded default of SCIB.pcr
-        #So, without changeding (from ["pcr"]["variance"]), would recompute always?
-        pca_var=adata.uns["pca_variance"],
-        n_threads=20,
-    )
-scores = (pcr_before - pcr_afters) / pcr_before
-"""    
-
 #We flip and scale based only on pcr_after, so the highest column gets 1 and the lowest gets 0.
 #Alternately, we could use the scores (already normalized and with a floor for bad columns) to scale
 scores = -pcr_afters #Because lower is better
