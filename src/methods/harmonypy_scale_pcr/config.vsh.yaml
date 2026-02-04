@@ -31,7 +31,7 @@ engines:
     setup:
       - type: python
         pypi:
-          - harmonypy
+          - harmonypy==0.0.10
           - scib==1.1.7          
 runners:
   - type: executable
