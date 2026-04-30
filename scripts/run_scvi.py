@@ -5,9 +5,9 @@ from scvi.model import SCVI
 import numpy as np
 
 adata = sc.read_h5ad(sys.argv[1])
-
+dim = int(sys.argv[3])
 print("Run scVI", flush=True)
-model_kwargs = {'n_latent': 100, 'n_hidden': 128, 'n_layers': 2}
+model_kwargs = {'n_latent': dim, 'n_hidden': 128, 'n_layers': 2}
 
 SCVI.setup_anndata(adata, batch_key="batch")
 vae = SCVI(adata, **model_kwargs)

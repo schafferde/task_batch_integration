@@ -125,9 +125,10 @@ def process_all_data(all_flat_data: list, lookup_df: pd.DataFrame) -> pd.DataFra
     # Convert all metric values to numeric (coerce will turn unhandled -1s into NaN temporarily)
     df['Metric Value'] = pd.to_numeric(df['Metric Value'], errors='coerce')
     
-    # Replace the 'NaN's resulting from coercion of -1s back to the number -1
-    # This ensures that non-looked-up -1s are treated as a numeric value -1
-    df.loc[kbet_mask & ~found_mask, 'Metric Value'] = -1.0 
+    if not kbet_to_lookup.empty:
+        # Replace the 'NaN's resulting from coercion of -1s back to the number -1
+        # This ensures that non-looked-up -1s are treated as a numeric value -1
+        df.loc[kbet_mask & ~found_mask, 'Metric Value'] = -1.0 
     
     # 4. Pivot the DataFrame
     pivot_df = df.pivot_table(
@@ -200,3 +201,4 @@ if __name__ == '__main__':
     # To run this script from your terminal, you would execute:
     # python your_script_name.py file1.yaml file2.yaml -o combined_results.csv
     main()
+
