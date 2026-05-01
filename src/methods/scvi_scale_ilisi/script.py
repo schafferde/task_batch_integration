@@ -37,13 +37,15 @@ if par["n_hvg"]:
     idx = adata.var["hvg_score"].to_numpy().argsort()[::-1][:par["n_hvg"]]
     adata = adata[:, idx].copy()
 
-time.sleep(60*5)
+print("Expexted scVI Output:")
 #Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
+print(resname, flush=True)
+time.sleep(60*5)
 results = np.load(resname)
 
 def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=results[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch']})
+    adata_tmp = ad.AnnData(X=results[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
     sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
     ilisi_scores = lisi_graph_py(
         adata=adata_tmp,

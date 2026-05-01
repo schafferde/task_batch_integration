@@ -38,10 +38,13 @@ if par["n_hvg"]:
     idx = adata.var["hvg_score"].to_numpy().argsort()[::-1][:par["n_hvg"]]
     adata = adata[:, idx].copy()
 
-time.sleep(60*5)
+print("Expexted scVI Output:")
 #Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
+print(resname, flush=True)
+time.sleep(60*5)
 results = np.load(resname)
+
 def column_pcr_reg(i):
     return pc_regression(results[:, i].reshape((-1,1)), adata.obs['batch'])
 

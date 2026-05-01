@@ -30,13 +30,14 @@ adata = read_anndata(
 )
 #nmf_model = NMF(n_components=par["n_comps"], init='nndsvda', random_state=0, max_iter=par["max_iter"], solver='mu')
 #W = nmf_model.fit_transform(adata.X) # W: cell x program matrix
-
+print("Expected NMF output:")
+print(par["output"].replace(".h5ad", ".fromNMF.h5ad"), flush=True)
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromNMF.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
 def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch']})
+    adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
     sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
     ilisi_scores = lisi_graph_py(
         adata=adata_tmp,

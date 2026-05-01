@@ -33,7 +33,7 @@ print(">> Run SCA", flush=True)
 reduce_scanpy(adata, keep_loadings=False, layer=None, key_added='sca', iters=par['iters'], n_comps=par['n_comps'])
 
 def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=adata.obsm['X_sca'][:, i].reshape((-1,1)), obs={"batch":adata.obs['batch']})
+    adata_tmp = ad.AnnData(X=adata.obsm['X_sca'][:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
     sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
     ilisi_scores = lisi_graph_py(
         adata=adata_tmp,

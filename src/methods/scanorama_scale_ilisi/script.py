@@ -42,7 +42,7 @@ for i, b in enumerate(batch_categories):
     result[adata.obs['batch'] == b] = split[i].obsm["X_scanorama"]
     
 def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=result[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch']})
+    adata_tmp = ad.AnnData(X=result[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
     sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
     ilisi_scores = lisi_graph_py(
         adata=adata_tmp,

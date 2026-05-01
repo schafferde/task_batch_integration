@@ -28,6 +28,8 @@ adata = read_anndata(
     var="var",
     uns="uns"
 )
+print('Expected Seurat output:')
+print(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), flush=True)
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), obsm="obsm")
