@@ -1,0 +1,33 @@
+__merge__: /src/api/comp_method.yaml
+name: nmf_subbm_ilisi
+label: NMF centered by PCR
+summary: Non-negative matirx factorization
+description: |
+  Contrastive Learning
+references:
+  # Pedregosa, F., Varoquaux, G., Gramfort, A. et al.
+  # Scikit-learn: Machine Learning in Python
+  # arXiv, 1201.0490v4 (2018). https://doi.org/10.48550/arXiv.1201.0490
+  doi: 10.1038/s41587-025-02950-z
+links:
+  repository: https://github.com/scikit-learn/scikit-learn/
+  documentation: https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k 
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi:
+          - scib==1.1.7
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, highmem, lowtime]

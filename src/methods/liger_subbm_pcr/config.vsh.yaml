@@ -1,0 +1,30 @@
+__merge__: /src/api/comp_method.yaml
+name: liger_subbm_pcr
+label: LIGER centered by PCR
+summary: Linked Inference of Genomic Experimental Relationships
+description: |
+  Contrastive Learning
+references:
+  doi: 10.1016/j.cell.2019.05.006
+links:
+  repository: https://github.com/welch-lab/liger
+  documentation: https://github.com/welch-lab/liger
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k 
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi:
+          - scib==1.1.7
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, highmem, lowtime]
