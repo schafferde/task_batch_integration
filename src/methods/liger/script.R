@@ -18,9 +18,12 @@ if (!(grepl("tabula", par$output) || grepl("gtex", par$output))) {
   quit(status = 1, save = "no")
 }
 
-cat("Read input\n")
-adata <- anndata::read_h5ad(par$input)
-adata$obs["batch"] <- sub("\\+", "plus", adata$obs[["batch"]]) # Replace "+"" characters in batch names
+#Added
+original_names <- rownames(adata)
+#Changed to gsub
+adata$obs["batch"] <- gsub("\\+", "plus", adata$obs[["batch"]]) # Replace "+"" characters in batch names
+rownames(adata) <- gsub("_", "-", rownames(adata)) #Replace _ characters with -
+#Liger prefixes batch_ if it does not exist; this ends up causing problems for adata lookup if any rownames already start with batch_
 
 anndataToLiger <- function(adata) {
   # fetch batch names
@@ -114,6 +117,10 @@ output <- anndata::AnnData(
   ),
   shape = adata$shape
 )
+
+#Added
+rownames(output) <- original_names
+
 
 cat(">> Write AnnData to file\n")
 zzz <- output$write_h5ad(par$output, compression = "gzip")

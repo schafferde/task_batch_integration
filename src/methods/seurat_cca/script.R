@@ -26,8 +26,12 @@ meta <- list(
 ## VIASH END
 
 #Bypass, allowing one to copy output file in while this sleeps
-#Sys.sleep(300)
-#q()
+cat("Input file:\n")
+cat(par$input)
+cat("Expected output file to be created:\n")
+cat(par$output)
+Sys.sleep(300)
+q()
 
 
 cat("Read input\n")

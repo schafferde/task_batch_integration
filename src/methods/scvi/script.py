@@ -59,8 +59,8 @@ print(resname, flush=True)
 #vae.train(max_epochs=par["max_epochs"], train_size=1.0)
 #results = vae.get_latent_representation()
 """
-
-time.sleep(60*45)
+#Wait for scVI to be run
+time.sleep(60*30)
 #Now, read in pre-computed embedding
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
 

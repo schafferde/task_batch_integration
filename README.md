@@ -8,15 +8,19 @@ Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Significantly e
 ## Methods and Modifications for OpenProblems Pipeline
 All of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
 - `src/methods/` contains updated and additional baseline methods, as well as BatchRefiner-modified methods.
-    - We used a total of eight baseline methods: Harmony, LIGER, NMF, PCA, SCA, Scanorama, scVI, Seurat.
-        - SCA, PCA, NMF, and Seurat CCA are new. LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
-        - scVI is modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage.
+    - We used a total of nine baseline methods: CONCORD, Harmony, LIGER, NMF, PCA, SCA, Scanorama, scVI, Seurat.
+        - CONCORD, NMF, SCA, and Seurat CCA are new. 
+        - PCA is newly added as a method with paramertized dimensions, but was previously included in the preprocessing and used as a control method.
+        - LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
+        - We also fixed a rare issue with the LIGER wrapper that arrises when unique cell identifiers are prefixed with batch labels contrart to expectations. 
+        - CONCORD, scVI, and Seurat are modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage and Seurat had a long runtime in some cases.
         - Scanorama (`scanorama_integrate`) is modified to produce only embedding output; we also include a `scanorama_correct` method for corrected-count output.
         - Please see each method script for implementation details. 
         - Our pipeline-compatible implementations of SCA, as well as our split of Scanorama into two methods,
           are also available as standalone branches of this repository. 
     - The BatchRefiner methods are named as `Baseline_mode_metric`. Baseline is the baseline method (above). Mode is either `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component reregression implementation from `scib`. 
-        - BatchRefiner methods for scVI, Seurat, LIGER, and NMF are modified to load in embeddings computed while running the baseline methods. The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
+        - BatchRefiner methods for CONCORD, LIGER, NMF, scVI, and Seurat are modified to load in embeddings computed while running the baseline methods. The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
+- `src/control_methods/` contains a panel of seven control methods used to calculate empirical minimum and maximum ranges for each metric and dataset.
 - `src/workflow/run_benchmark` contains the top-level script for benchmarking. We modified this to include the expanded set of methods we used. 
 - `src/metrics/` contains the various OpenProblems metrics. We modified the resource usage tags of a few based on our observations and the values we chose for each tag (below).
    We also modified `kbet` to use [our slight modification to the scib implementation](https://github.com/schafferde/scib/tree/kbet_memory). It changes some data types in a deterministic preprocessing step to greatly reduce time and memory usage, especially for numberous cell types. We used `scib` version 1.1.7 for all benchmarking; we note that this modification has recently been merged into `scib` version `1.2.0`.
