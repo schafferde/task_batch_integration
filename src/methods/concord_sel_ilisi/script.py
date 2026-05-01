@@ -13,9 +13,10 @@ from scib.metrics.lisi import lisi_graph_py
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
+    "n_comps": 200,
 }
 meta = {
-    "name": "concord_scale_ilisi",
+    "name": "concord_sel_ilisi",
 }
 ## VIASH END
 
@@ -33,33 +34,15 @@ adata = read_anndata(
 
 print("Expected CONCORD output:")
 print(par["output"].replace(".h5ad", ".fromConcord.h5ad"), flush=True)
+print("Expected CONCORD iLISI scores:")
+print(par["output"].replace(".h5ad", ".ilisiScores.npy"), flush=True)
+
 time.sleep(60*5)
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromConcord.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
-def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
-    sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
-    ilisi_scores = lisi_graph_py(
-        adata=adata_tmp,
-        obs_key='batch',
-        n_cores=1,
-    )
-    ilisi = np.nanmedian(ilisi_scores)
-    ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
-    return ilisi
 
-#This seems to be a faster way to compute iLISI in parallel
-print(">> Compute iLISI for CONCORD Columns", flush=True)
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore", category=FutureWarning)
-    with Pool(8) as p:
-        scores = np.asarray(p.map(column_ilisi, range(embedding.shape[1])))
-
-np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
-
-scores -= np.min(scores)
-max_val = np.max(scores)
-scores /= max_val if max_val > 0 else 1 #Becomes a no-op if all the same
+scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
+columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]
 
 
 
@@ -68,7 +51,7 @@ output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": embedding * scores
+        "X_emb": embedding[:, columns]
     },
     shape=adata.shape,
     uns={

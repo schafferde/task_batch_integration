@@ -7,15 +7,16 @@ import time
 import warnings
 from multiprocessing import Pool
 import numpy as np
-from scib.metrics.lisi import lisi_graph_py
+from scib.metrics.pcr import pc_regression
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
+    "r2_thresh": 0.01,
 }
 meta = {
-    "name": "concord_scale_ilisi",
+    "name": "concord_selfix01_pcr",
 }
 ## VIASH END
 
@@ -31,36 +32,32 @@ adata = read_anndata(
     uns="uns"
 )
 
-print("Expected CONCORD output:")
+print(">> Run Concord", flush=True)
+#device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+#cur_ccd = ccd.Concord(adata=adata, domain_key='batch', device=device, preload_dense=True)
+#cur_ccd.fit_transform(output_key='Concord')
+#embedding = adata.obsm["Concord"]
 print(par["output"].replace(".h5ad", ".fromConcord.h5ad"), flush=True)
-time.sleep(60*5)
+time.sleep(60*4)
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromConcord.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
-def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
-    sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
-    ilisi_scores = lisi_graph_py(
-        adata=adata_tmp,
-        obs_key='batch',
-        n_cores=1,
-    )
-    ilisi = np.nanmedian(ilisi_scores)
-    ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
-    return ilisi
+def column_pcr_reg(i):
+    return pc_regression(embedding[:, i].reshape((-1,1)), adata.obs['batch'])
 
-#This seems to be a faster way to compute iLISI in parallel
-print(">> Compute iLISI for CONCORD Columns", flush=True)
+print(">> Compute PCR for NMF Columns", flush=True)
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
-    with Pool(8) as p:
-        scores = np.asarray(p.map(column_ilisi, range(embedding.shape[1])))
+    with Pool(20) as p:
+        pcr_afters = np.asarray(p.map(column_pcr_reg, range(embedding.shape[1])))
 
-np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
-
-scores -= np.min(scores)
-max_val = np.max(scores)
-scores /= max_val if max_val > 0 else 1 #Becomes a no-op if all the same
-
+#Alternately, we could use the scores (already normalized and with a floor for bad columns) to scale
+#Note that we want the lowest-scoring columns
+columns = pcr_afters < par["r2_thresh"]
+with open(par["output"].rsplit("/", 1)[0]+f"_{meta['name']}_columns.txt", "w") as f:
+    print("Mean score", np.mean(pcr_afters), file=f)
+    print("Median score", np.median(pcr_afters), file=f)
+    print("Initial columns", columns.shape[0], file=f)
+    print("Columns kept with", par['r2_thresh'], np.sum(columns), file=f)
 
 
 print("Store output", flush=True)
@@ -68,7 +65,7 @@ output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": embedding * scores
+        "X_emb": embedding[:, columns]
     },
     shape=adata.shape,
     uns={

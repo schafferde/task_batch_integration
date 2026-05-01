@@ -18,8 +18,12 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
         - Please see each method script for implementation details. 
         - Our pipeline-compatible implementations of SCA, as well as our split of Scanorama into two methods,
           are also available as standalone branches of this repository. 
-    - The BatchRefiner methods are named as `Baseline_mode_metric`. Baseline is the baseline method (above). Mode is either `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component reregression implementation from `scib`. 
-        - BatchRefiner methods for CONCORD, LIGER, NMF, scVI, and Seurat are modified to load in embeddings computed while running the baseline methods. The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
+    - The BatchRefiner methods are named as `Baseline_mode_metric`. 
+        - Baseline is the baseline method (above).
+        - Mode is either `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). 
+        - Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component reregression implementation from `scib`. 
+        - BatchRefiner methods for CONCORD, LIGER, NMF, scVI, and Seurat are modified to load in embeddings computed while running the baseline methods. 
+        - The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
 - `src/control_methods/` contains a panel of seven control methods used to calculate empirical minimum and maximum ranges for each metric and dataset.
 - `src/workflow/run_benchmark` contains the top-level script for benchmarking. We modified this to include the expanded set of methods we used. 
 - `src/metrics/` contains the various OpenProblems metrics. We modified the resource usage tags of a few based on our observations and the values we chose for each tag (below).

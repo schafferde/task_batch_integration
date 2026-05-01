@@ -7,15 +7,17 @@ import time
 import warnings
 from multiprocessing import Pool
 import numpy as np
-from scib.metrics.lisi import lisi_graph_py
+from scib.metrics.pcr import pc_regression
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
+    "n_comps": 67,
+    "r2_thresh": 1.0
 }
 meta = {
-    "name": "concord_scale_ilisi",
+    "name": "concord_sel_pcr",
 }
 ## VIASH END
 
@@ -36,31 +38,31 @@ print(par["output"].replace(".h5ad", ".fromConcord.h5ad"), flush=True)
 time.sleep(60*5)
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromConcord.h5ad"), obsm="obsm")
 embedding = adata_res.obsm["X_emb"]
-def column_ilisi(i):
-    adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch'].values})
-    sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
-    ilisi_scores = lisi_graph_py(
-        adata=adata_tmp,
-        obs_key='batch',
-        n_cores=1,
-    )
-    ilisi = np.nanmedian(ilisi_scores)
-    ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
-    return ilisi
+def column_pcr_reg(i):
+    return pc_regression(embedding[:, i].reshape((-1,1)), adata.obs['batch'])
 
-#This seems to be a faster way to compute iLISI in parallel
-print(">> Compute iLISI for CONCORD Columns", flush=True)
+print(">> Compute PCR for CONCORD Columns", flush=True)
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
-    with Pool(8) as p:
-        scores = np.asarray(p.map(column_ilisi, range(embedding.shape[1])))
+    with Pool(20) as p:
+        pcr_afters = np.asarray(p.map(column_pcr_reg, range(embedding.shape[1])))
 
-np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
+#Alternately, we could use the scores (already normalized and with a floor for bad columns) to scale
+#Note that we want the lowest-scoring columns
 
-scores -= np.min(scores)
-max_val = np.max(scores)
-scores /= max_val if max_val > 0 else 1 #Becomes a no-op if all the same
+#Alternate threshold-based filtering
+fixed_filtering = True
+if par["r2_thresh"] < 1.0:
+    fixed_filtering = False
+    columns = pcr_afters < par["r2_thresh"]
+    print("Initial columns", columns.shape[0])
+    print("Columns kept with", par['r2_thresh'], np.sum(columns), flush=True)
+    if np.sum(columns) < par["n_comps"]: #Fixed filtering gets rid of too many columns
+        fixed_filtering = True
+        print("Reverting to keeping a fixed # of columns", par["n_comps"], flush=True)
 
+if fixed_filtering: #Regular fixed-count filtering
+    columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]
 
 
 print("Store output", flush=True)
@@ -68,7 +70,7 @@ output = ad.AnnData(
     obs=adata.obs[[]],
     var=adata.var[[]],
     obsm={
-        "X_emb": embedding * scores
+        "X_emb": embedding[:, columns]
     },
     shape=adata.shape,
     uns={
