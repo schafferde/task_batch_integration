@@ -1,0 +1,33 @@
+__merge__: /src/api/comp_method.yaml
+name: concord_scale_pcr
+label: Concord scaled by PCR
+summary: Revealing a coherent cell-state landscape across single-cell datasets with CONCORD
+description: |
+  Contrastive Learning
+references:
+  # Zhu, Q., Jiang, Z., Zuckerman, B. et al.
+  # Revealing a coherent cell-state landscape across single-cell datasets with CONCORD
+  # Nature Biotechnology (2026). https://doi.org/10.1038/s41587-025-02950-z
+  doi: 10.1038/s41587-025-02950-z
+links:
+  repository: https://github.com/Gartner-Lab/Concord
+  documentation: https://qinzhu.github.io/Concord_documentation/
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k 
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi:
+          - scib==1.1.7
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [lowcpu, highmem, lowtime]
