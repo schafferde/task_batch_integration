@@ -11,7 +11,7 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
     - We used a total of eight baseline methods: Harmony, LIGER, NMF, PCA, SCA, Scanorama, scVI, Seurat.
         - SCA, PCA, NMF, and Seurat CCA are new. LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
         - scVI is modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage.
-        - Scanorama (`scanorama_integrate`) is modified to produce only embedding output, we also include `scanorama_correct` for corrected-count output.
+        - Scanorama (`scanorama_integrate`) is modified to produce only embedding output; we also include a `scanorama_correct` method for corrected-count output.
         - Please see each method script for implementation details. 
         - Our pipeline-compatible implementations of SCA, as well as our split of Scanorama into two methods,
           are also available as standalone branches of this repository. 
@@ -25,20 +25,21 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
     - Added: `scripts/create_resources/download_resources.sh` contains the command we used to download processed CELLxGENE-origin datasets from OpenProblems' AWS storage.
     - Added: `scripts/run_benchmark/revised_run_local.sh` runs the pipeline on the full datasets locally.
     - Added: `new_labels_ci.config`, giving limiting values for nextflow resource usage labels used by above. We tuned these values, and the resource usages of a few methods and metrics, in cases where more resources (time, CPUs, or memory) were needed. The current values and labelings of each componenet were sufficient for us to run the pipeline. In many cases, the current resource limits are likely not tight bounds.
-    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>csv.`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used. 
+    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>csv`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used. 
     - Used unmodified: `scripts/project/build_all_docker_containers.sh` is used to build the pipeline before running.
     - Used unmodified: `scripts/create_resources/test_resources.sh` downloads the small test dataset.
     - Used unmodified: `scripts/run_benchmark/run_test_local.sh` runs the pipeline on the small test dataset.
     
 ## Data
-``br_results`` contains three data files and one script:
+``br_results`` contains three data files and two scripts:
 - Three CSV files contain the accumulated results from runs of OpenProblems benchmarking, scaled using control metrics. In general, we renamed outputs from multiple benchmarking runs with different parameters to generate unqiue names. 
     - Relative to the names of each method as implemented (above), we renamed `seurat_cca` to `seurat` and `scanorama_integrate` to `scanorama`. 
-    - Methods filtering one fifth, third, or half of dimensions are named `sel50`, `sel67`, and `sel80`, respectivly. 
+    - Methods filtering one half, third, or fifth of dimensions are named `sel50`, `sel67`, and `sel80`, respectivly. 
     - Methods filtering with a fixed batch $R^2$ threshold are named `selfix01` and `selfix10` for thresholds of 0.01 (max. 50 dimensions filtered) and 0.10. 
     - Methods filtering based on Q3+IQR are named `seliqr`. 
     - Methods centering by subtracting scaled batch means are named `subbm`. 
 - A script, `plot_benchmarking_results.py`, that generates all figure panels used to visualize OpenProblems benchmarking results. 
+- A script, `example_plot_umap.py`, that demonstrates plotting side-by-side UMAPs for a baseline method and BatchRefiner approaches. 
 
 ---
 ## The original README from the OpenProblems repository follows below.
