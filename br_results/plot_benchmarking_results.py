@@ -9,10 +9,8 @@ import matplotlib.colors as mc
 import matplotlib.ticker as plticker
 import matplotlib.transforms as mtrans
 import matplotlib.ticker as mtick
-import sys
 
 # Metric lists
-
 biocons_metrics = ["isolated_label_asw", "clisi", 
                  "nmi", "ari", "asw_label",
                  "isolated_label_f1", "cell_cycle_conservation"]
@@ -20,16 +18,12 @@ batch_metrics = ["asw_batch", "ilisi", "kbet",
                    "graph_connectivity", "pcr"]
 #                    "ari_batch", "nmi_batch"]
 
-#df = pd.read_csv('final_100d_results_table_scale6.csv')
 df = pd.read_csv("final_100d_table_combined_scale6.csv")
 # Define the required order for the jitter plots
 all_metrics = batch_metrics + biocons_metrics
-#skip will get gray
-#baselines = ['harmonypy', 'pca', 'sca', 'scanorama', 'seurat', 'skip', 'scvi', 'liger', 'nmf', 'concord']
 baselines = ['concord', 'harmonypy', 'liger', 'nmf', 'pca', 'sca', 'scanorama', 'scvi', 'seurat']
-#baselines = ['concord']
 
-# --- 2. Data Preprocessing and Aggregation ---
+# --- 1. Data Preprocessing and Aggregation ---
 
 def parse_method_name(method_name):
     """Parses method name into components: Baseline, Type, B_modifier, C_modifier."""
@@ -71,7 +65,6 @@ df_agg = df_long.groupby(['Dataset', 'Method', 'Baseline', 'Type', 'B_modifier',
 ).reset_index()
 
 df_agg.to_csv("agg_df.csv", index=False)
-#sys.exit(1)
 
 # Global Aggregate Score aggregation (for Dot Plot panel)
 df_agg_global = df_agg.groupby(
@@ -84,15 +77,11 @@ df_long_global = df_long.groupby([
 ])['Value'].mean().reset_index()
 
 
-# --- 3. Plotting Setup (Color and Marker Maps) ---
+# --- 2. Plotting Setup and Helpers (Color and Marker Maps) ---
 
-# Use the updated 'baselines' list for color map
-#colors_to_use = plt.get_cmap('Set1', len(baselines))
-#Red, blue, green, purple, orange, yellow (bad), brown, pink, grey
 colors_to_use = plt.get_cmap('tab10', 10).colors
 #blue, orange, green, red, purple, brown, pink, grey, olive, cyan
 #0     1       2      3    4       5      6     7     8      9
-#Legacy color mappings
 color_map = {
     "harmonypy": colors_to_use[3],#red
     "pca": colors_to_use[8], #olive
@@ -105,9 +94,7 @@ color_map = {
     "concord": colors_to_use[7], #grey
     }
 
-#color_map = {name: colors(i) for i, name in enumerate(baselines)}
 print(color_map)
-#baselines.remove("skip")
 
 # Define markers based on B_modifier and C_modifier combination
 def get_marker(B, C, type_):
@@ -169,7 +156,7 @@ def nice_approach(b_mod, sel_only=False):
     elif b_mod in ["selfix01", "selfix10", "seliqr"]:
         approach =  "filtered"
     elif b_mod == "subbm":
-        approach = "centered" #changed from shifted
+        approach = "centered"
     else:
         approach = b_mod
     return approach
@@ -207,15 +194,7 @@ def darken_color(color, amount=0.75):
     c = colorsys.rgb_to_hls(*mc.to_rgb(color))
     return colorsys.hls_to_rgb(c[0], max(0, min(1, amount * c[1])), c[2])    
 
-# --- 4. Exclusion Rule and Shared Legend Creation ---
-
-def apply_exclusion_rules(df_input):
-    #Exclude filtering for LIGER on GTEx due to insufficient dimensions. 
-    df_output = df_input[
-        ~((df_input['Dataset'] == 'gtex_v9') & (df_input['Baseline'] == 'liger') & (df_input['B_modifier'] == 'sel'))
-    ].copy()
-    return df_output
-
+# --- 3. Shared Legend Creation ---
 
 def create_shared_legend(fig, filter_c, b_filter_list, arrow_space=True):
     """Creates and positions the shared figure legend using Proxy Artists, dynamically filtering shapes by C-modifier and B-modifier set."""
@@ -284,20 +263,16 @@ def create_shared_legend(fig, filter_c, b_filter_list, arrow_space=True):
     
 
 
-# --- 5. Per-Dataset Plotting Function (Aggregate) - Individual Axis Scaling Applied ---
+# --- 4. Per-Dataset Plotting Function (Aggregate) - Individual Axis Scaling Applied ---
 
 def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=None, mod_method_list=None):
     """Generates the multi-panel plot for a specific C-modifier, showing per-dataset scores, with arrows."""
     
-    # 1. Filter for methods based on C/B modifiers
     df_plot = df_data[
         (df_data['Type'] == 'baseline') | 
         ((df_data['C_modifier'] == filter_c) & (df_data['B_modifier'].isin(b_filter_list)))
     ].copy()
-    
-    # 2. Apply the exclusion rule
-    df_plot = apply_exclusion_rules(df_plot)
-    
+      
     datasets_to_plot = sorted(df_plot['Dataset'].unique())
     n_datasets = len(datasets_to_plot)
     if n_datasets == 0:
@@ -426,12 +401,10 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
     plt.close(fig)
 
 
-# --- 6. Global Summary Plotting Function (No individual scaling/exclusion - uses global average) ---
+# --- 5. Global Summary Plotting Function  ---
 
 def calculate_difference(df_agg_global, filter_c, b_filter_list):
     """Calculates the batch score difference: Modified - Baseline, filtered by C and B-list."""
-    # This uses the global average scores, so no exclusion rule here.
-    
     # Filter for the specific C-modifier and B-list (and include baselines for joining)
     df_filtered = df_agg_global[
         (df_agg_global['Type'] == 'baseline') | 
@@ -465,7 +438,6 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
     """Generates a two-panel plot: Dot Plot (L) and Diff Bar Plot (R) with arrows."""
     
     # Filter for baseline methods OR methods where C_modifier matches the filter AND B_modifier is in b_filter_list
-    # Note: No exclusion rule here, as this plot uses the global average scores.
     df_dot_plot = df_data_global[
         (df_data_global['Type'] == 'baseline') | 
         ((df_data_global['C_modifier'] == filter_c) & (df_data_global['B_modifier'].isin(b_filter_list)))
@@ -525,11 +497,9 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
             zorder=2,
         )
 
-
     # 3. Draw arrows
     for row in modified_points:
         baseline_name = row['Baseline']
-        
         modified_x, modified_y = row['batch_score'], row['biocons_score']
         
         if baseline_name in baseline_coords:
@@ -549,13 +519,11 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
             ax1.add_patch(fancy_arrow)
 
     # Panel settings
-    ax1.set_title('Average Benchmarks on 9 Datasets', fontsize=16) #Belatedly changed from 6
+    ax1.set_title('Average Benchmarks on 9 Datasets', fontsize=16) 
     ax1.set_xlabel('Batch Correction Score', fontsize=16) 
     ax1.set_ylabel('Bio Conservation Score', fontsize=16) 
     ax1.grid(True, linestyle='--', alpha=0.6)
     if fixed_bounds:
-        #ax1.set_xlim(0.42, 0.78) #0.32 -> 0.4
-        #ax1.set_ylim(0.2, 0.6) #0.36 -> 0.4
         ax1.set_xlim(0.42, 0.79) #0.33 -> 0.37
         ax1.set_ylim(0.21, 0.63) #0.38 -> 0.42
         ax1.set_aspect('equal', adjustable='box')
@@ -567,19 +535,15 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
     # --- AX2: Bar Plot Logic (Uses global average data) ---   
 
     pos1 = ax2.get_position()
-    label_height_shift = 0.18 #TODO: refine this for supplement sel/sel2/sel3
+    label_height_shift = 0.18 
     new_y0 = pos1.y0 + label_height_shift
     new_height = pos1.height - label_height_shift
-    
     ax2.set_position([pos1.x0, new_y0, pos1.width, new_height])
-
 
     df_diff = calculate_difference(df_data_global, filter_c, b_filter_list)
     baselines_for_diff = df_diff['Baseline'].unique()
-    #print(baselines_for_diff)
     if mod_method_list:
         baselines_for_diff = set(baselines_for_diff) & set(mod_method_list)
-    #print(baselines_for_diff, mod_method_list)
     baselines_for_diff = sorted(list(baselines_for_diff))
     b_modifiers_in_plot = [b for b in b_filter_list if b in df_diff['B_modifier'].unique()]
     width = 0.25
@@ -605,7 +569,6 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
             biocons_diff_values.append(-value)
         diff_values = batch_diff_values + biocons_diff_values
         if diff_values:
-            #y_min_diff = min(y_min_diff, min(diff_values))
             y_max_diff = max(y_max_diff, max(diff_values))
         
         multiplier = 0
@@ -645,14 +608,11 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
     elif tall:
         rotation = 60
     ax2.set_xticks(np.arange(num_groups) + width/2, names, rotation=rotation, ha='right', fontsize=16)
-    # ...
+
     trans = mtrans.Affine2D().translate(6, 0) #Can be tuned
     for xtick, color in zip(ax2.get_xticklabels(), colors):
         xtick.set_color(darken_color(color))
         xtick.set_transform(xtick.get_transform()+trans)
-        #x, y = xtick.get_position()
-        #print(x, y)
-        #xtick.set_position((x + 1, y))
 
     ax2.tick_params(axis='y', which='major', labelsize=12)
     ax2.set_xlim(-2*width, num_groups-width)
@@ -660,7 +620,7 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
 
     y_max_diff*=1.2
     if fixed_bounds:
-        ax2.set_ylim(0, 0.34) #Was 0.36 for 6-dataset
+        ax2.set_ylim(0, 0.34) 
     else:
         ax2.set_ylim(0, y_max_diff)
     bar_ofset = 0.01 * y_max_diff
@@ -691,13 +651,12 @@ def create_global_summary_two_panel(df_data_global, filter_c, b_filter_list, fil
     plt.close(fig)
 
 
-# --- 7. Jitter Plotting Functions (Metric vs. Metric Axis - Global Average) ---
+# --- 6. Jitter Plotting Functions (Metric vs. Metric Axis - Global Average) ---
 
 def plot_jitter_data_on_ax(ax, df_data, filter_c, b_filter_list):
     """Shared function to plot jittered metric scores on a single axis (Metrics on X-axis), uses global average data."""
     
     # Filter data for the current C_modifier and B-list, including baselines
-    # Note: No exclusion rule here, as this plot uses the global average scores.
     df_plot = df_data[
         (df_data['Type'] == 'baseline') | 
         ((df_data['C_modifier'] == filter_c) & (df_data['B_modifier'].isin(b_filter_list)))
@@ -749,17 +708,17 @@ def plot_jitter_data_on_ax(ax, df_data, filter_c, b_filter_list):
     ax.text(
         (len(batch_metrics) - 1) / 2, 
         y_pos_rel, 
-        'Batch Correction Metrics (9-Dataset Average)', #Changed from 6
+        'Batch Correction Metrics (9-Dataset Average)',
         transform=ax.get_xaxis_transform(),
-        ha='center', va='bottom', fontsize=16, color='darkblue' #fontweight='bold', 
+        ha='center', va='bottom', fontsize=16, color='darkblue'
     )
 
     ax.text(
         (len(batch_metrics) + len(all_metrics) - 1) / 2, 
         y_pos_rel, 
-        'Bio Conservation Metrics (9-Dataset Average)', #Changed from 6
+        'Bio Conservation Metrics (9-Dataset Average)', 
         transform=ax.get_xaxis_transform(),
-        ha='center', va='bottom', fontsize=16, color='darkgreen' #fontweight='bold', 
+        ha='center', va='bottom', fontsize=16, color='darkgreen'  
     )
     
     ax.axvline(x=batch_end_x, color='gray', linestyle='--', linewidth=1, zorder=1)
@@ -795,20 +754,18 @@ def create_jitter_plot_global(df_data_global_long, filter_c, b_filter_list, file
     plt.close(fig)
 
 
-# --- 8. Jitter Plotting Functions (Metric vs. Dataset Axis) - Individual Axis Scaling Applied ---
+# --- 7. Jitter Plotting Functions (Metric vs. Dataset Axis) - Individual Axis Scaling Applied ---
 
 def plot_jitter_data_dataset_on_ax(ax, df_data, filter_c, b_filter_list, metric, datasets=None, is_last_row=True):
     """Helper to plot a single metric's scores across all datasets (Datasets on X-axis), filtered by C and B-list."""
     
-    # 1. Filter for the current metric and C_modifier, including baselines
+    # Filter for the current metric and C_modifier, including baselines
     df_plot = df_data[
         (df_data['Metric'] == metric) & 
         ((df_data['Type'] == 'baseline') | ((df_data['C_modifier'] == filter_c) & (df_data['B_modifier'].isin(b_filter_list))))
     ].copy()
     
-    # 2. Apply the exclusion rule
-    df_plot = apply_exclusion_rules(df_plot)
-    
+   
     if df_plot.empty:
         ax.text(0.5, 0.5, 'No data', ha='center', va='center', transform=ax.transAxes)
         return
@@ -879,11 +836,9 @@ def create_jitter_plot_per_metric(df_data_long, filter_c, b_filter_list, filenam
         (df_data_long['Type'] == 'baseline') | 
         ((df_data_long['C_modifier'] == filter_c) & (df_data_long['B_modifier'].isin(b_filter_list)))
     ].copy()
-    
-    # The individual metric plot will apply the exclusion rule inside the helper function
-    
+     
     n_metrics = len(all_metrics)
-    ncols = 3 #4 - changed from 6-dataset
+    ncols = 3 
     nrows = int(math.ceil(n_metrics / ncols))
 
     fig, axes = plt.subplots(nrows, ncols, figsize=(14, 18), constrained_layout=True) #Height increased from 14
@@ -893,7 +848,6 @@ def create_jitter_plot_per_metric(df_data_long, filter_c, b_filter_list, filenam
     fig.suptitle(f'Individual Metric Scores (C = "{filter_c}", B = "{b_mods_str}") - Grouped by Metric', fontsize=18, fontweight='bold')
 
     # Add shared X and Y axis labels
-    #fig.text(0.5, 0.0, 'Dataset', ha='center', fontsize=16)
     fig.text(0.0, 0.5, 'Metric Score', va='center', rotation='vertical', fontsize=16)
     
     # Plotting Loop
@@ -905,7 +859,7 @@ def create_jitter_plot_per_metric(df_data_long, filter_c, b_filter_list, filenam
 
         last_row = i >= ncols * (nrows-1)
         
-        # Plot data for the specific metric (Exclusion rule and Individual Scaling applied inside helper)
+        # Plot data for the specific metric (Individual Scaling applied inside helper)
         plot_jitter_data_dataset_on_ax(ax, df_plot_all, filter_c, b_filter_list, metric, datasets=df_plot_all['Dataset'].unique(), is_last_row=last_row)
 
         # Panel settings
@@ -928,14 +882,14 @@ def create_jitter_plot_per_metric(df_data_long, filter_c, b_filter_list, filenam
     plt.close(fig)
 
 
-# --- 9. Generate All Plots ---
+# --- 8. Generate All Plots ---
 
 print("Starting plot generation...")
 
 b_modifier_groups = { #BR modes
     'scale': ['scale'],
-    #'sel50': ['sel50'],
-    #'selfix01': ['selfix01'], #sel = filtering
+    #'sel50': ['sel50'], #sel = filtering
+    #'selfix01': ['selfix01'], 
     #'selfix10': ['selfix10'],
     #'seliqr': ['seliqr'],
     #'sel80': ['sel80'],
@@ -943,12 +897,11 @@ b_modifier_groups = { #BR modes
     'subbm': ['subbm'],
     #'combo': ['scale', 'sel67']
     }
-c_modifiers = ['pcr'] #ilisi
+c_modifiers = ['pcr', 'ilisi'] 
 method_subsets = {"combo": ['harmonypy', 'sca', 'pca', 'scanorama', 'concord']}
 
 for c_mod in c_modifiers:
     for group_name, b_list in b_modifier_groups.items():
-        """
         # 1. Global Aggregate Plots (Dot Plots + Difference Bar Plot) - Two Panel, Filtered by C and B-list - No Exclusion/Global Scale
         create_global_summary_two_panel(
             df_agg_global, 
@@ -969,7 +922,6 @@ for c_mod in c_modifiers:
             b_arrow_list=['scale', 'sel50', 'selfix01', 'seliqr', 'sel80', 'sel67', 'selfix10', 'subbm'],
             mod_method_list=method_subsets.get(group_name, None)
         )
-        """
         # 3. Jitter Plots (Individual Metrics, Global Average) - Single Panel, Filtered by C and B-list - No Exclusion/Global Scale
         create_jitter_plot_global(
             df_long_global, 
@@ -977,7 +929,6 @@ for c_mod in c_modifiers:
             b_filter_list=b_list, 
             filename=f'plot_jitter_global_{c_mod}_{group_name}.svg'
         ) 
-        """
         # 4. Jitter Plots (Individual Metrics, Grouped by Metric) - Filtered by C and B-list - Individual Scaling and Exclusion Applied
         create_jitter_plot_per_metric(
             df_long, 
@@ -985,4 +936,3 @@ for c_mod in c_modifiers:
             b_filter_list=b_list, 
             filename=f'plot_jitter_per_metric_{c_mod}_{group_name}.svg'
         )
-        """
