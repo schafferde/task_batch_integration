@@ -11,7 +11,8 @@ par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
     "n_comps": 50,
-    "n_comps_init": 100
+    "n_comps_init": 100,
+    "r2_thresh": 1.0
 }
 meta = {
     "name": "liger_sel_pcr",
@@ -29,6 +30,9 @@ adata = read_anndata(
     var="var",
     uns="uns"
 )
+print("Expected LIGER output:")
+print(par["output"].replace(".h5ad", ".fromLiger.h5ad"), flush=True)
+
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromLiger.h5ad"), obsm="obsm")
@@ -48,7 +52,19 @@ else:
             pcr_afters = np.asarray(p.map(column_pcr_reg, range(embedding.shape[1])))
 
     #Note that we want to minimize pcr_after, which would maximize score
-    columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]
+    #Alternate threshold-based filtering
+    fixed_filtering = True
+    if par["r2_thresh"] < 1.0:
+        fixed_filtering = False
+        columns = pcr_afters < par["r2_thresh"]
+        print("Initial columns", columns.shape[0])
+        print("Columns kept with", par['r2_thresh'], np.sum(columns), flush=True)
+        if np.sum(columns) < par["n_comps"]: #Fixed filtering gets rid of too many columns
+            fixed_filtering = True
+            print("Reverting to keeping a fixed # of columns", par["n_comps"], flush=True)
+
+    if fixed_filtering: #Regular fixed-count filtering
+        columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]
     e2 = embedding[:, columns]
     
 print("Store output", flush=True)

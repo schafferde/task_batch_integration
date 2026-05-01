@@ -10,7 +10,7 @@ par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
     "dimred_init": 100,
-    "dimred": 50
+    "dimred": 67
 }
 meta = {
     "name": "harmonypy_sel_ilisi",

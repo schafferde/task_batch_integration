@@ -50,6 +50,8 @@ def column_ilisi(i):
 
 print(">> Compute iLISI for NMF Columns", flush=True)
 scores = np.asarray([column_ilisi(i) for i in range(par['n_comps'])])
+np.save(par["output"].replace(".h5ad", ".ilisiScores.nmp"), scores)
+
 scores -= np.min(scores)
 max_val = np.max(scores)
 scores /= max_val if max_val > 0 else 1 #Becomes a no-op if all the same

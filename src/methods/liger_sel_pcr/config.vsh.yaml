@@ -18,12 +18,16 @@ info:
 arguments:
   - name: --n_comps
     type: integer
-    default: 50
+    default: 67
     description: Embedding dimension (max)
   - name: n_comps_init
     type: integer
     default: 100
     description: Initial embedding dimension (max)
+  - name: --r2_thresh
+    type: double
+    default: 1.0
+    description: threshold for PCR/batch R^2 scores    
 resources:
   - type: python_script
     path: script.py

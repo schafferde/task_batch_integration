@@ -19,7 +19,7 @@ info:
 arguments:
   - name: --dimred
     type: integer
-    default: 50
+    default: 67
     description: Embedding dimension
   - name: --dimred_init
     type: integer

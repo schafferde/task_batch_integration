@@ -28,6 +28,10 @@ adata = read_anndata(
     var="var",
     uns="uns"
 )
+print("Expected LIGER output:")
+print(par["output"].replace(".h5ad", ".fromLiger.h5ad"), flush=True)
+print('Expected LIGER iLISI scores:')
+print(par["output"].replace(".h5ad", ".ilisiScores.npy"), flush=True)
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromLiger.h5ad"), obsm="obsm")
@@ -35,19 +39,6 @@ embedding = adata_res.obsm["X_emb"]
 if embedding.shape[1] <= par["n_comps"]:
     e2 = embedding
 else:
-    def column_ilisi(i):
-        adata_tmp = ad.AnnData(X=embedding[:, i].reshape((-1,1)), obs={"batch":adata.obs['batch']})
-        sc.pp.neighbors(adata_tmp, n_neighbors=15, copy=False)
-        ilisi_scores = lisi_graph_py(
-            adata=adata_tmp,
-            obs_key='batch',
-            n_cores=20,
-        )
-        ilisi = np.nanmedian(ilisi_scores)
-        ilisi = (ilisi - 1)# / (adata.obs['batch'].nunique() - 1)
-        return ilisi
-
-    print(">> Compute iLISI for LIGER Columns", flush=True)
     #Read in pre-computed iLISI scores
     scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
     columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]
