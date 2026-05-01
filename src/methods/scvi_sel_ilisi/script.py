@@ -2,9 +2,7 @@ import sys
 import anndata as ad
 import scanpy as sc
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 import time
 
 ## VIASH START
@@ -16,7 +14,7 @@ par = {
     'n_hidden': 128,
     'n_layers': 2,
     'max_epochs': 400,
-    'n_final': 50
+    'n_final': 67
 }
 meta = {
     'name' : 'scvi_sel_ilisi',
@@ -41,9 +39,13 @@ if par["n_hvg"]:
     adata = adata[:, idx].copy()
 
 print("Processing data", flush=True)
-time.sleep(60*5)
 #Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
+print("Expected scVI output:")
+print(resname, flush=True)
+print("Expected iLISI scores for scVI:")
+print(par["output"].replace(".h5ad", ".ilisiScores.npy"), flush=True)
+time.sleep(60*5)
 results = np.load(resname)
 
 def column_ilisi(i):
@@ -59,8 +61,6 @@ def column_ilisi(i):
     return ilisi
 
 print(">> Compute iLISI for scVI Columns", flush=True)
-#scores = np.asarray([column_ilisi(i) for i in range(results.shape[1])])
-#Read in pre-computed iLISI scores
 scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
 
 columns = np.argpartition(scores, -par["n_final"])[-par["n_final"]:]

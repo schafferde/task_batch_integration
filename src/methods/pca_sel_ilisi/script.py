@@ -10,7 +10,7 @@ import warnings
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "n_comps": 50,
+    "n_comps": 67,
     "n_comps_init": 100
 }
 meta = {

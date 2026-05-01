@@ -15,7 +15,7 @@ info:
 arguments:
   - name: --n_comps
     type: integer
-    default: 50
+    default: 67
     description: Selected mbedding dimension
   - name: --n_comps_init
     type: integer

@@ -11,8 +11,9 @@ from scib.metrics.pcr import pc_regression
 par = {
     'input': 'resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad',
     'output': 'output.h5ad',
-    'dimred': 50,
-    'dimred_init': 100
+    'dimred': 67,
+    'dimred_init': 100,
+    "r2_thresh": 1.0
 }
 meta = {
     'name': 'scanorama_sel_pcr',
@@ -55,7 +56,19 @@ with warnings.catch_warnings():
 
 
 #Note that we want to minimize pcr_after, which would maximize score
-columns = np.argpartition(pcr_afters, par["dimred"])[:par["dimred"]]
+#Alternate threshold-based filtering
+fixed_filtering = True
+if par["r2_thresh"] < 1.0:
+    fixed_filtering = False
+    columns = pcr_afters < par["r2_thresh"]
+    print("Initial columns", columns.shape[0])
+    print("Columns kept with", par['r2_thresh'], np.sum(columns), flush=True)
+    if np.sum(columns) < par["dimred"]: #Fixed filtering gets rid of too many columns
+        fixed_filtering = True
+        print("Reverting to keeping a fixed # of columns", par["dimred"], flush=True)
+
+if fixed_filtering: #Regular fixed-count filtering
+    columns = np.argpartition(pcr_afters, par["dimred"])[:par["dimred"]]
 
 
 print("Store output", flush=True)

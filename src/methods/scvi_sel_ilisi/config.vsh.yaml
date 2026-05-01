@@ -37,7 +37,7 @@ arguments:
     description: Maximum number of epochs.
   - name: --n_final
     type: integer
-    default: 50
+    default: 67
     description: Number of selected dimensions.    
 resources:
   - type: python_script
@@ -49,7 +49,6 @@ engines:
     setup:
       - type: python
         pypi:
-          - scvi-tools>=1.1.0
           - scib==1.1.7
 runners:
   - type: executable

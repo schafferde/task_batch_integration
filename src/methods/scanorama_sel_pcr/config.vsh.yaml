@@ -22,12 +22,16 @@ info:
 arguments:
   - name: --dimred
     type: integer
-    default: 50
+    default: 67
     description: Embedding dimension
   - name: --dimred_init
     type: integer
     default: 100
     description: Number of source columns    
+  - name: --r2_thresh
+    type: double
+    default: 1.0
+    description: threshold for PCR/batch R^2 scores     
 resources:
   - type: python_script
     path: script.py
@@ -44,4 +48,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [hightime, highmem, midcpu]
+      label: [midtime, highmem, midcpu]

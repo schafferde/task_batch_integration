@@ -24,6 +24,10 @@ arguments:
     type: integer
     default: 100
     description: Number of source columns    
+  - name: --r2_thresh
+    type: double
+    default: 1.0
+    description: threshold for PCR/batch R^2 scores    
 resources:
   - type: python_script
     path: script.py
@@ -39,4 +43,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [midcpu, highmem, veryhightime]
+      label: [midcpu, highmem, lowtime]

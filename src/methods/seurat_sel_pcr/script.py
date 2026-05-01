@@ -10,8 +10,9 @@ import time
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "n_comps": 50,
-    "n_comps_init": 100
+    "n_comps": 67,
+    "n_comps_init": 100,
+    "r2_thresh": 1.0
 }
 meta = {
     "name": "seurat_sel_pcr",
@@ -29,6 +30,8 @@ adata = read_anndata(
     var="var",
     uns="uns"
 )
+print("Expected Seurat output:")
+print(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), flush=True)
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), obsm="obsm")
@@ -36,15 +39,26 @@ embedding = adata_res.obsm["X_emb"]
 def column_pcr_reg(i):
     return pc_regression(embedding[:, i].reshape((-1,1)), adata.obs['batch'])
 
-print(">> Compute PCR for PCA Columns", flush=True)
+print(">> Compute PCR for Seurat Columns", flush=True)
 with warnings.catch_warnings():
     warnings.simplefilter("ignore", category=FutureWarning)
     with Pool(20) as p:
         pcr_afters = np.asarray(p.map(column_pcr_reg, range(embedding.shape[1])))
 
 #Note that we want to minimize pcr_after, which would maximize score
-columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]
-    
+#Alternate threshold-based filtering
+fixed_filtering = True
+if par["r2_thresh"] < 1.0:
+    fixed_filtering = False
+    columns = pcr_afters < par["r2_thresh"]
+    print("Initial columns", columns.shape[0])
+    print("Columns kept with", par['r2_thresh'], np.sum(columns), flush=True)
+    if np.sum(columns) < par["n_comps"]: #Fixed filtering gets rid of too many columns
+        fixed_filtering = True
+        print("Reverting to keeping a fixed # of columns", par["n_comps"], flush=True)
+
+if fixed_filtering: #Regular fixed-count filtering
+    columns = np.argpartition(pcr_afters, par["n_comps"])[:par["n_comps"]]    
 print("Store output", flush=True)
 output = ad.AnnData(
     obs=adata.obs[[]],

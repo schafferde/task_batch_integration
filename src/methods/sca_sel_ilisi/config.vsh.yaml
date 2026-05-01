@@ -25,7 +25,7 @@ arguments:
     description: Number of iterations of SCA.
   - name: --n_comps
     type: integer
-    default: 50
+    default: 67
     description: Embedding dimension
   - name: --n_comps_init
     type: integer
@@ -47,4 +47,4 @@ runners:
   - type: executable
   - type: nextflow
     directives:
-      label: [lowcpu, highmem, hightime]
+      label: [lowcpu, highmem, midtime]

@@ -2,16 +2,14 @@ import sys
 import anndata as ad
 import scanpy as sc
 from scib.metrics.lisi import lisi_graph_py
-from multiprocessing import Pool
 import numpy as np
-import warnings
 import time
 
 ## VIASH START
 par = {
     "input": "resources_test/task_batch_integration/cxg_immune_cell_atlas/dataset.h5ad",
     "output": "output.h5ad",
-    "n_comps": 50,
+    "n_comps": 67,
     "n_comps_init": 100
 }
 meta = {
@@ -30,6 +28,11 @@ adata = read_anndata(
     var="var",
     uns="uns"
 )
+
+print("Expected Seurat output:")
+print(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), flush=True)
+print("Expected Seurat iLISI scores:")
+print(par["output"].replace(".h5ad", ".ilisiScores.npy"), flush=True)
 time.sleep(60*5)
 #Read in pre-computed embedding
 adata_res = read_anndata(par["output"].replace(".h5ad", ".fromSeurat.h5ad"), obsm="obsm")
@@ -48,9 +51,6 @@ def column_ilisi(i):
     return ilisi
 
 print(">> Compute iLISI for Seurat Columns", flush=True)
-#scores = np.asarray([column_ilisi(i) for i in range(embedding.shape[1])])
-#np.save(par["output"].replace(".h5ad", ".ilisiScores.npy"), scores)
-#Read in pre-computed iLISI scores
 scores = np.load(par["output"].replace(".h5ad", ".ilisiScores.npy"))
 
 columns = np.argpartition(scores, -par["n_comps"])[-par["n_comps"]:]

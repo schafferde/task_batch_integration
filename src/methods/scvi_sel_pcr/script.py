@@ -15,7 +15,8 @@ par = {
     'n_hidden': 128,
     'n_layers': 2,
     'max_epochs': 400,
-    'n_final': 50
+    'n_final': 67,
+    'r2_thresh': 1.0
 }
 meta = {
     'name' : 'scvi_sel_pcr',
@@ -39,10 +40,12 @@ if par["n_hvg"]:
     idx = adata.var["hvg_score"].to_numpy().argsort()[::-1][:par["n_hvg"]]
     adata = adata[:, idx].copy()
 
-time.sleep(60*5)
-#Load pre-computed data
 resname = par["output"].replace(".h5ad", ".fromSCVI.npy")
+print("Expected scVI output:")
+print(resname, flush=True)
+time.sleep(60*5)
 results = np.load(resname)
+
 def column_pcr_reg(i):
     return pc_regression(results[:, i].reshape((-1,1)), adata.obs['batch'])
 
@@ -53,7 +56,19 @@ with warnings.catch_warnings():
         pcr_afters = np.asarray(p.map(column_pcr_reg, range(results.shape[1])))
 
 #Note that we want to minimize pcr_after, which would maximize score
-columns = np.argpartition(pcr_afters, par["n_final"])[:par["n_final"]]
+#Alternate threshold-based filtering
+fixed_filtering = True
+if par["r2_thresh"] < 1.0:
+    fixed_filtering = False
+    columns = pcr_afters < par["r2_thresh"]
+    print("Initial columns", columns.shape[0])
+    print("Columns kept with", par['r2_thresh'], np.sum(columns), flush=True)
+    if np.sum(columns) < par["n_final"]: #Fixed filtering gets rid of too many columns
+        fixed_filtering = True
+        print("Reverting to keeping a fixed # of columns", par["n_final"], flush=True)
+
+if fixed_filtering: #Regular fixed-count filtering
+    columns = np.argpartition(pcr_afters, par["n_final"])[:par["n_final"]]
     
 print("Store output", flush=True)
 output = ad.AnnData(
