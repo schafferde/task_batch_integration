@@ -20,13 +20,13 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
           are also available as standalone branches of this repository. 
     - The BatchRefiner methods are named as `Baseline_mode_metric`. 
         - Baseline is the baseline method (above).
-        - Mode is either `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). 
+        - Mode is one of `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). 
         - Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component reregression implementation from `scib`. 
         - BatchRefiner methods for CONCORD, LIGER, NMF, scVI, and Seurat are modified to load in embeddings computed while running the baseline methods. 
         - The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
 - `src/control_methods/` contains a panel of seven control methods used to calculate empirical minimum and maximum ranges for each metric and dataset.
 - `src/workflow/run_benchmark` contains the top-level script for benchmarking. We modified this to include the expanded set of methods we used. 
-- `src/metrics/` contains the various OpenProblems metrics. We modified the resource usage tags of a few based on our observations and the values we chose for each tag (below).
+- `src/metrics/` contains the various OpenProblems metrics. We modified the resource usage tags of a few, based on our observations and the values we chose for each tag (below).
    We also modified `kbet` to use [our slight modification to the scib implementation](https://github.com/schafferde/scib/tree/kbet_memory). It changes some data types in a deterministic preprocessing step to greatly reduce time and memory usage, especially for numberous cell types. We used `scib` version 1.1.7 for all benchmarking; we note that this modification has recently been merged into `scib` version `1.2.0`.
 - `scripts/` contains some added scripts that we used for running the pipeline and associated data handling. Scripts not mentioned are included from
     the original repository and may or may not work out of the box.
@@ -35,7 +35,7 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
         - To get the datasets into common format, see [our fork of the Openproblems datasets repo](https://github.com/schafferde/openproblems_datasets/tree/more_scrna_datasets). 
     - Added: `scripts/run_benchmark/revised_run_local.sh` runs the pipeline on the full datasets locally.
     - Added: `new_labels_ci.config`, giving limiting values for nextflow resource usage labels used by above. We tuned these values, and the resource usages of a few methods and metrics, in cases where more resources (time, CPUs, or memory) were needed. The current values and labelings of each componenet were sufficient for us to run the pipeline. In many cases, the current resource limits are likely not tight bounds.
-    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>csv`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used. 
+    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>csv`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used, where `.yaml` files are processed in argument order and then top-to-bottom. 
     - Used unmodified: `scripts/project/build_all_docker_containers.sh` is used to build the pipeline before running.
     - Used unmodified: `scripts/create_resources/test_resources.sh` downloads the small test dataset.
     - Used unmodified: `scripts/run_benchmark/run_test_local.sh` runs the pipeline on the small test dataset.
