@@ -3,7 +3,7 @@
 
 This branch of this fork of `openprobems/task_batch_integration` contains code and materials associated with BatchRefiner:
 
-Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Significantly enhanced batch integration of scRNA-seq embeddings. *In preparation*
+Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Ensemble learning significantly improves batch integration of scRNA-seq cell embeddings. *In preparation*
 
 ## Methods and Modifications for OpenProblems Pipeline
 All of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
