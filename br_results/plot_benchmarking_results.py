@@ -417,14 +417,14 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
         for method, d in paired_by_method.items():
             for approach, pairs in d.items():
                 base_list, mod_list = zip(*pairs)
-                t, p = stats.ttest_rel(base_list, mod_list)
-                print(method, "with", approach + ": p =", p)
+                t, p = stats.ttest_rel(base_list, mod_list, alternative="less")
+                print(method, "with", approach, filter_c, ": p =", p)
                 if approach not in p_by_approach:
                     p_by_approach[approach] = []
                 p_by_approach[approach].append(p)
     for approach, pvals in p_by_approach.items():
         statistic, combined_p = stats.combine_pvalues(pvals, method='fisher')
-        print("Fisher's combined p for", approach, ": p=", combined_p)
+        print("Fisher's combined p for", approach, filter_c, ": p=", combined_p)
 
 
 # --- 5. Global Summary Plotting Function  ---
