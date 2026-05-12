@@ -318,16 +318,17 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
         for _, row in df_subset.iterrows():
             baseline = row['Baseline']
             method_type = row['Type']
+            approach = row['B_modifier']
             if method_type == 'modified':
                 if mod_method_list and baseline not in mod_method_list:
                     continue
-                elif b_arrow_list and row['B_modifier'] in b_arrow_list:
-                    if b_arrow_list not in modified_points:
-                        modified_points[row['B_modifier']] = []
-                    modified_points[row['B_modifier']].append(row)
+                elif b_arrow_list and approach in b_arrow_list:
+                    if approach not in modified_points:
+                        modified_points[approach] = []
+                    modified_points[approach].append(row)
             
             color = color_map.get(baseline, 'gray')
-            marker = get_marker(row['B_modifier'], row['C_modifier'], method_type)
+            marker = get_marker(approach, row['C_modifier'], method_type)
             
             # Plotting (AXES SWAPPED: X=Batch, Y=Biocons)
             ax.plot(
