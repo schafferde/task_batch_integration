@@ -289,7 +289,7 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
     b_mods_str = ", ".join(b_filter_list)
     fig.suptitle(f'Aggregate Scores (C = "{filter_c}", B = "{b_mods_str}")', fontsize=16, fontweight='bold')
 
-
+    paired_by_method = {}
     # Plotting Loop
     for i, dataset in enumerate(datasets_to_plot):
         ax = axes[i]
@@ -312,9 +312,10 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
         df_baseline_subset = df_subset[df_subset['Type'] == 'baseline']
         for _, row in df_baseline_subset.iterrows():
             baseline_coords[row['Baseline']] = (row['batch_score'], row['biocons_score'])
+        
             
         # 2. Plot points and collect modified coordinates
-        modified_points = {}
+        modified_points = []
         for _, row in df_subset.iterrows():
             baseline = row['Baseline']
             method_type = row['Type']
@@ -323,9 +324,7 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
                 if mod_method_list and baseline not in mod_method_list:
                     continue
                 elif b_arrow_list and approach in b_arrow_list:
-                    if approach not in modified_points:
-                        modified_points[approach] = []
-                    modified_points[approach].append(row)
+                    modified_points.append(row)
             
             color = color_map.get(baseline, 'gray')
             marker = get_marker(approach, row['C_modifier'], method_type)
@@ -345,36 +344,36 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
 
         # 3. Draw arrows from baseline to modified points
         #Also calculate p-values for the approaches we draw arrows for
-        for approach, row_list in modified_points.items():
-            base_list = []
-            mod_list = []
-            for row in row_list:
-                baseline_name = row['Baseline']
-                modified_x, modified_y = row['batch_score'], row['biocons_score']
-                
-                if baseline_name in baseline_coords:
-                    baseline_x, baseline_y = baseline_coords[baseline_name]
-                    base_list.append(baseline_x)
-                    mod_list.append(modified_x)
-                    color = color_map.get(baseline_name, 'gray')
+        for row in modified_points:
+            baseline_name = row['Baseline']
+            modified_x, modified_y = row['batch_score'], row['biocons_score']
 
-                    fancy_arrow = FancyArrowPatch(
-                        posA=(baseline_x, baseline_y),
-                        posB=(modified_x, modified_y),
-                        arrowstyle="simple", 
-                        facecolor=color,
-                        edgecolor=color,
-                        alpha=0.5,
-                        mutation_scale=20,
-                        shrinkA=15, shrinkB=15
-                    )
-                    try:
-                        ax.add_patch(fancy_arrow)
-                    except:
-                        print("Unable to add arrow for", baseline_name)
-            if p_value:
-                t, p = stats.ttest_rel(base_list, mod_list)
-                print(approach + ": p =", p)
+            if baseline_name in baseline_coords:
+                baseline_x, baseline_y = baseline_coords[baseline_name]
+
+                if p_value:
+                    if baseline_name not in paired_by_method:
+                        paired_by_method[baseline_name] = {approach: []}
+                    elif approach not in paired_by_method[baseline_name]:
+                        paired_by_method[baseline_name][approach] = []
+                    paired_by_method[baseline_name][approach].append((baseline_x, modified_x))
+                
+                color = color_map.get(baseline_name, 'gray')
+
+                fancy_arrow = FancyArrowPatch(
+                    posA=(baseline_x, baseline_y),
+                    posB=(modified_x, modified_y),
+                    arrowstyle="simple", 
+                    facecolor=color,
+                    edgecolor=color,
+                    alpha=0.5,
+                    mutation_scale=20,
+                    shrinkA=15, shrinkB=15
+                )
+                try:
+                    ax.add_patch(fancy_arrow)
+                except:
+                    print("Unable to add arrow for", baseline_name)
 
         # Panel settings (AXIS LABELS SWAPPED)
         ax.set_title(f'Dataset: {nice_dataset(dataset)}', fontsize=16)
@@ -412,6 +411,20 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
 
     plt.savefig(filename, format='svg', bbox_inches='tight')
     plt.close(fig)
+
+    p_by_approach = {}
+    if p_value:
+        for method, d in paired_by_method.items():
+            for approach, pairs in d:
+                base_list, mod_list = zip(*pairs)
+                t, p = stats.ttest_rel(base_list, mod_list)
+                print(method, "with", approach + ": p =", p)
+                if approach not in p_by_approach:
+                    p_by_approach[approach] = []
+                p_by_approach[approach].append(p)
+    for approach, pvals in p_by_approach.items():
+        statistic, combined_p = stats.combine_pvalues(pvals, method='fisher')
+        print("Fisher's combined p for", approach, ": p=", combined_p)
 
 
 # --- 5. Global Summary Plotting Function  ---
