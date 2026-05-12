@@ -3,7 +3,7 @@
 
 This branch of this fork of `openprobems/task_batch_integration` contains code and materials associated with BatchRefiner:
 
-Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Ensemble refinement significantly enhances batch integration of scRNA-seq cell embeddings. *In preparation*
+Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: BatchRefiner: fast, significant improvement in batch integration of scRNA-seq cell embeddings with ensemble refinement. *In preparation*
 
 ## Methods and Modifications for OpenProblems Pipeline
 All of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
@@ -48,7 +48,7 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
     - Methods filtering with a fixed batch $R^2$ threshold are named `selfix01` and `selfix10` for thresholds of 0.01 (max. 50 dimensions filtered) and 0.10. 
     - Methods filtering based on Q3+IQR are named `seliqr`. 
     - Methods centering by subtracting scaled batch means are named `subbm`. 
-- A script, `plot_benchmarking_results.py`, that generates all figure panels used to visualize OpenProblems benchmarking results. 
+- A script, `plot_benchmarking_results.py`, that generates all figure panels used to visualize OpenProblems benchmarking results. This script also computes p-values when plotting per-dataset benchmarks. 
 - A script, `example_plot_umap.py`, that demonstrates plotting side-by-side UMAPs for a baseline method and BatchRefiner approaches. 
 
 ---
