@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+from scipy import stats
 import colorsys
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
@@ -265,7 +266,7 @@ def create_shared_legend(fig, filter_c, b_filter_list, arrow_space=True):
 
 # --- 4. Per-Dataset Plotting Function (Aggregate) - Individual Axis Scaling Applied ---
 
-def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=None, mod_method_list=None):
+def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=None, mod_method_list=None, p_value=False):
     """Generates the multi-panel plot for a specific C-modifier, showing per-dataset scores, with arrows."""
     
     df_plot = df_data[
@@ -313,7 +314,7 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
             baseline_coords[row['Baseline']] = (row['batch_score'], row['biocons_score'])
             
         # 2. Plot points and collect modified coordinates
-        modified_points = []
+        modified_points = {}
         for _, row in df_subset.iterrows():
             baseline = row['Baseline']
             method_type = row['Type']
@@ -321,7 +322,9 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
                 if mod_method_list and baseline not in mod_method_list:
                     continue
                 elif b_arrow_list and row['B_modifier'] in b_arrow_list:
-                    modified_points.append(row)
+                    if b_arrow_list not in modified_points:
+                        modified_points[row['B_modifier']] = []
+                    modified_points[row['B_modifier']].append(row)
             
             color = color_map.get(baseline, 'gray')
             marker = get_marker(row['B_modifier'], row['C_modifier'], method_type)
@@ -340,28 +343,37 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
             
 
         # 3. Draw arrows from baseline to modified points
-        for row in modified_points:
-            baseline_name = row['Baseline']
-            modified_x, modified_y = row['batch_score'], row['biocons_score']
-            
-            if baseline_name in baseline_coords:
-                baseline_x, baseline_y = baseline_coords[baseline_name]
-                color = color_map.get(baseline_name, 'gray')
+        #Also calculate p-values for the approaches we draw arrows for
+        for approach, row_list in modified_points:
+            base_list = []
+            mod_list = []
+            for row in row_list:
+                baseline_name = row['Baseline']
+                modified_x, modified_y = row['batch_score'], row['biocons_score']
+                
+                if baseline_name in baseline_coords:
+                    baseline_x, baseline_y = baseline_coords[baseline_name]
+                    base_list.append(baseline_x)
+                    mod_list.append(modified_x)
+                    color = color_map.get(baseline_name, 'gray')
 
-                fancy_arrow = FancyArrowPatch(
-                    posA=(baseline_x, baseline_y),
-                    posB=(modified_x, modified_y),
-                    arrowstyle="simple", 
-                    facecolor=color,
-                    edgecolor=color,
-                    alpha=0.5,
-                    mutation_scale=20,
-                    shrinkA=15, shrinkB=15
-                )
-                try:
-                    ax.add_patch(fancy_arrow)
-                except:
-                    print(baseline_name)
+                    fancy_arrow = FancyArrowPatch(
+                        posA=(baseline_x, baseline_y),
+                        posB=(modified_x, modified_y),
+                        arrowstyle="simple", 
+                        facecolor=color,
+                        edgecolor=color,
+                        alpha=0.5,
+                        mutation_scale=20,
+                        shrinkA=15, shrinkB=15
+                    )
+                    try:
+                        ax.add_patch(fancy_arrow)
+                    except:
+                        print("Unable to add arrow for", baseline_name)
+            if p_value:
+                t, p = stats.ttest_rel(base_list, mod_list)
+                print(approach + ": p =", p)
 
         # Panel settings (AXIS LABELS SWAPPED)
         ax.set_title(f'Dataset: {nice_dataset(dataset)}', fontsize=16)
@@ -893,7 +905,7 @@ b_modifier_groups = { #BR modes
     #'selfix10': ['selfix10'],
     #'seliqr': ['seliqr'],
     #'sel80': ['sel80'],
-    'sel67': ['sel67'],
+    #'sel67': ['sel67'],
     'subbm': ['subbm'],
     #'combo': ['scale', 'sel67']
     }
@@ -910,7 +922,8 @@ for c_mod in c_modifiers:
             filename=f'plot_global_summary_{c_mod}_{group_name}.svg',
             b_arrow_list=['scale', 'sel50', 'selfix01', 'seliqr', 'sel80', 'sel67', 'selfix10', 'subbm'],
             mod_method_list=method_subsets.get(group_name, None),
-            fixed_bounds=True, tall=True
+            fixed_bounds=True, 
+            tall=True
         )
         
         # 2. Aggregate Plots (Dot Plots) - Per Dataset, Filtered by C and B-list - Individual Scaling and Exclusion Applied
@@ -920,7 +933,8 @@ for c_mod in c_modifiers:
             b_filter_list=b_list, 
             filename=f'plot_dot_{c_mod}_{group_name}.svg',
             b_arrow_list=['scale', 'sel50', 'selfix01', 'seliqr', 'sel80', 'sel67', 'selfix10', 'subbm'],
-            mod_method_list=method_subsets.get(group_name, None)
+            mod_method_list=method_subsets.get(group_name, None), 
+            p_value=True
         )
         # 3. Jitter Plots (Individual Metrics, Global Average) - Single Panel, Filtered by C and B-list - No Exclusion/Global Scale
         create_jitter_plot_global(
