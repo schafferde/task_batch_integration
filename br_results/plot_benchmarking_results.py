@@ -345,7 +345,7 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
 
         # 3. Draw arrows from baseline to modified points
         #Also calculate p-values for the approaches we draw arrows for
-        for approach, row_list in modified_points:
+        for approach, row_list in modified_points.items():
             base_list = []
             mod_list = []
             for row in row_list:
