@@ -415,7 +415,7 @@ def create_dot_plot(df_data, filter_c, b_filter_list, filename, b_arrow_list=Non
     p_by_approach = {}
     if p_value:
         for method, d in paired_by_method.items():
-            for approach, pairs in d:
+            for approach, pairs in d.items():
                 base_list, mod_list = zip(*pairs)
                 t, p = stats.ttest_rel(base_list, mod_list)
                 print(method, "with", approach + ": p =", p)
