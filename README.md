@@ -3,7 +3,7 @@
 
 This branch of this fork of `openprobems/task_batch_integration` contains code and materials associated with BatchRefiner:
 
-Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: BatchRefiner: fast, significant improvement in batch integration of scRNA-seq cell embeddings with ensemble refinement. *In preparation*
+Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Ensemble refinement significantly enhances batch integration of scRNA-seq cell embeddings. *In preparation*
 
 ## Methods and Modifications for OpenProblems Pipeline
 All of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
