@@ -3,25 +3,24 @@
 
 This branch of this fork of `openprobems/task_batch_integration` contains code and materials associated with BatchRefiner:
 
-Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: Ensemble refinement significantly enhances batch integration of scRNA-seq cell embeddings. *In preparation*
+Schäffer, D. E, Kang, H., Aksu, E. D., Edelman, D., Berger, B.: BatchRefiner: fast, significant improvement in batch integration of scRNA-seq cell embeddings with ensemble refinement. *In preparation*
 
 ## Methods and Modifications for OpenProblems Pipeline
 All of our benchmarking was done using the OpenProblems pipeline, and this repository contains our modifications:
 - `src/methods/` contains updated and additional baseline methods, as well as BatchRefiner-modified methods.
-    - We used a total of nine baseline methods: CONCORD, Harmony, LIGER, NMF, PCA, SCA, Scanorama, scVI, Seurat.
-        - CONCORD, NMF, SCA, and Seurat CCA are new. 
-        - PCA is newly added as a method with paramertized dimensions, but was previously included in the preprocessing and used as a control method.
-        - LIGER and Harmony (harmonypy) are modified to produce output with paramaterized dimensions.
+    - We used a total of nine baseline methods: CONCORD, Harmony, LIGER, NMF, PCA, SCA, Scanorama, scVI, and Seurat.
+        - CONCORD, NMF, SCA, and Seurat CCA are new to the pipeline. 
+        - PCA is newly added as a method with parameterized dimensions, but was previously included in the preprocessing and used as a control method.
+        - LIGER and Harmony (harmonypy) are modified to produce output with parameterized dimensions.
         - We also fixed a rare issue with the LIGER wrapper that arrises when unique cell identifiers are prefixed with batch labels contrart to expectations. 
         - CONCORD, scVI, and Seurat are modified to load in embeddings computed elsewhere, as our piepline deployment did not support GPU usage and Seurat had a long runtime in some cases.
         - Scanorama (`scanorama_integrate`) is modified to produce only embedding output; we also include a `scanorama_correct` method for corrected-count output.
         - Please see each method script for implementation details. 
-        - Our pipeline-compatible implementations of SCA, as well as our split of Scanorama into two methods,
-          are also available as standalone branches of this repository. 
-    - The BatchRefiner methods are named as `Baseline_mode_metric`. 
+        - Our pipeline-compatible implementations of SCA, as well as our split of Scanorama into two methods, are also available as standalone branches of this repository. 
+    - The BatchRefiner methods are named as `baseline_mode_metric`. 
         - Baseline is the baseline method (above).
         - Mode is one of `scale`, `sel` (for filtering by SELecting dimensions), or `subbm` (for centering by SUBtracting Batch Means). 
-        - Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component reregression implementation from `scib`. 
+        - Metric is either `pcr` or `ilisi`. The `pcr` metric corresponds to using batch $R^2$, and is so named because it uses part of the principal component regression implementation from `scib`. 
         - BatchRefiner methods for CONCORD, LIGER, NMF, scVI, and Seurat are modified to load in embeddings computed while running the baseline methods. 
         - The `ilisi_sel` implementations for those methods are also modified to load dimension scores saved by the correspdoning `ilisi_scale` methods. Loading intermediate results is accomplished by manually moving files into the the method's working space while they are suspended.
 - `src/control_methods/` contains a panel of seven control methods used to calculate empirical minimum and maximum ranges for each metric and dataset.
@@ -32,22 +31,21 @@ All of our benchmarking was done using the OpenProblems pipeline, and this repos
     the original repository and may or may not work out of the box.
     - Added: `scripts/create_resources/download_resources.sh` contains the command we used to download processed CELLxGENE-origin datasets from OpenProblems' AWS storage.
     - Added: `scripts/create_resources/process_data_local.sh` contains the commands we used to process additional datasets used from OpenProblems common "format" to the task-specific form used for benchmarking. 
-        - To get the datasets into common format, see [our fork of the Openproblems datasets repo](https://github.com/schafferde/openproblems_datasets/tree/more_scrna_datasets). 
+        - To get the datasets into common format, see [our fork of the OpenProblems datasets repo](https://github.com/schafferde/openproblems_datasets/tree/more_scrna_datasets). 
     - Added: `scripts/run_benchmark/revised_run_local.sh` runs the pipeline on the full datasets locally.
-    - Added: `new_labels_ci.config`, giving limiting values for nextflow resource usage labels used by above. We tuned these values, and the resource usages of a few methods and metrics, in cases where more resources (time, CPUs, or memory) were needed. The current values and labelings of each componenet were sufficient for us to run the pipeline. In many cases, the current resource limits are likely not tight bounds.
-    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>csv`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used, where `.yaml` files are processed in argument order and then top-to-bottom. 
+    - Added: `new_labels_ci.config`, giving limiting values for nextflow resource usage labels used by above. We tuned these values, and the resource usages of a few methods and metrics, in cases where more resources (time, CPUs, or memory) were needed. The current values and labelings of each component were sufficient for us to run the pipeline. In many cases, the current resource limits are likely not tight bounds.
+    - Added: `scripts/generate_br_table.py` to generate a CSV of score outputs from many method runs. This script takes a list of output `score_uns.yaml` files, followed by `-o <output>.csv`. It also tries to read a lookup table `kbet_lookup_table.csv` to fill in any missing KBET values in the `yaml` files, which would be marked with `-1`. If multiple values for the same metric, method, and dataset are provided, the earliest-occuring is used, where `.yaml` files are processed in argument order and then top-to-bottom. 
     - Used unmodified: `scripts/project/build_all_docker_containers.sh` is used to build the pipeline before running.
     - Used unmodified: `scripts/create_resources/test_resources.sh` downloads the small test dataset.
     - Used unmodified: `scripts/run_benchmark/run_test_local.sh` runs the pipeline on the small test dataset.
     
 ## Data
 ``br_results`` contains three data files and two scripts:
-- Three CSV files contain the accumulated results from runs of OpenProblems benchmarking, scaled using control metrics. In general, we renamed outputs from multiple benchmarking runs with different parameters to generate unqiue names. 
+- Three CSV files contain the accumulated results from runs of OpenProblems benchmarking, scaled using control metrics. In general, we renamed outputs from multiple benchmarking runs with different filtering parameters to generate unqiue names. 
     - Relative to the names of each method as implemented (above), we renamed `seurat_cca` to `seurat` and `scanorama_integrate` to `scanorama`. 
     - Methods filtering one half, third, or fifth of dimensions are named `sel50`, `sel67`, and `sel80`, respectivly. 
     - Methods filtering with a fixed batch $R^2$ threshold are named `selfix01` and `selfix10` for thresholds of 0.01 (max. 50 dimensions filtered) and 0.10. 
     - Methods filtering based on Q3+IQR are named `seliqr`. 
-    - Methods centering by subtracting scaled batch means are named `subbm`. 
 - A script, `plot_benchmarking_results.py`, that generates all figure panels used to visualize OpenProblems benchmarking results. This script also computes p-values when plotting per-dataset benchmarks. 
 - A script, `example_plot_umap.py`, that demonstrates plotting side-by-side UMAPs for a baseline method and BatchRefiner approaches. 
 
