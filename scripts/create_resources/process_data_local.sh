@@ -25,7 +25,7 @@ nextflow run . \
   --output_solution solution.h5ad \
   --output_state state.yaml
 
-sed 's|run|ocular_atlas/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
+sed -i 's|run|ocular_atlas/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
 
 nextflow run . \
   -main-script target/nextflow/workflows/process_datasets/main.nf \
@@ -37,7 +37,7 @@ nextflow run . \
   --output_solution solution.h5ad \
   --output_state state.yaml
 
-sed 's|run|celegans_embryo/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
+sed -i 's|run|celegans_embryo/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
 
 nextflow run . \
   -main-script target/nextflow/workflows/process_datasets/main.nf \
@@ -49,5 +49,5 @@ nextflow run . \
   --output_solution solution.h5ad \
   --output_state state.yaml
 
-sed 's|run|tabula_muris/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
+sed -i 's|run|tabula_muris/log_cp10k|g' "$DATASET_DIR/ocular_atlas/log_cp10k/state.yaml"
 
