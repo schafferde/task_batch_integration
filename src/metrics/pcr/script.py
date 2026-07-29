@@ -23,7 +23,7 @@ adata_solution = read_anndata(
     X='layers/normalized',
     obs='obs',
     var='var',
-    # obsm='obsm',
+     obsm='obsm', #Need obsm for X_pca, but only relavent if adata.uns.pca.variance is also present
     # varm='varm',
     uns='uns'
 )

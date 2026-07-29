@@ -5,6 +5,10 @@ resources:
   - type: python_script
     path: script.py
   - path: /common/helper_functions/subset_h5ad_by_format.py
+arguments:
+  - name: --atac_behavior
+    type: boolean
+    default: false
 engines:
   - type: docker
     image: openproblems/base_python:1

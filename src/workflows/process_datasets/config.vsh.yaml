@@ -8,6 +8,10 @@ argument_groups:
         __merge__: /src/api/file_common_dataset.yaml
         required: true
         direction: input
+      - name: "--atac"
+        type: boolean
+        default: false
+        direction: input
   - name: Outputs
     arguments:
       - name: "--output_dataset"

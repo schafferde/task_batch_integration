@@ -40,7 +40,12 @@ workflow run_wf {
 
     // process the dataset
     | process_dataset.run(
-      fromState: [ input: "dataset" ],
+      fromState: { id, state ->
+        [
+          input: state.dataset,
+          atac_behavior: params.atac 
+        ]
+      } ,
       toState: [
         output_dataset: "output_dataset",
         output_solution: "output_solution"

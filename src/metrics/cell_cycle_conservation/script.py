@@ -26,6 +26,10 @@ adata_solution = read_anndata(
 )
 print(f"adata_solution: {adata_solution}", flush=True)
 
+if 0 in adata_solution.shape:
+    print("AnnData does not contain gene expression, so CCC is not possible.")
+    sys.exit(1)
+
 adata_integrated = read_anndata(
     par['input_integrated'],
     obs='obs',

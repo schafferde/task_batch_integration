@@ -1,0 +1,39 @@
+__merge__: /src/api/comp_atac_method.yaml
+name: cistopic
+label: pyCistopic
+summary: foo
+description: foo
+references:
+  doi: 10.1038/s41592-023-01938-4
+links:
+  repository: https://github.com/aertslab/pycistopic
+  documentation: https://pycistopic.readthedocs.io/en/latest/
+info:
+  method_types: [embedding]
+  preferred_normalization: log_cp10k
+arguments:
+  - name: --harmony
+    type: boolean
+    default: false
+    description: Run harmony?
+  - name: --br_mode
+    type: integer
+    default: 0
+    description: 0-> none, >0 -> select that many, -1 -> scale, -2 -> center
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/read_anndata_partial.py
+engines:
+  - type: docker
+    image: openproblems/base_python:1
+    setup:
+      - type: python
+        pypi:
+          - harmonypy==2.0.0
+          - scib==1.1.7          
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [midcpu, highmem, lowtime]
